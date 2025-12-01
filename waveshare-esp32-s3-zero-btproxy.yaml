@@ -68,7 +68,8 @@ network:
 
 dashboard_import:
   #package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/waveshare-esp32-s3-zero-btproxy.yaml
-  package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/raw/branch/wip/waveshare-esp32-s3-zero-btproxy.yaml
+  #package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/raw/branch/wip/waveshare-esp32-s3-zero-btproxy.yaml
+  package_import_url: github://dlitz/esphome-configs-dlitz/waveshare-esp32-s3-zero-btproxy.yaml@wip
 
 safe_mode:
   reboot_timeout: 10min
