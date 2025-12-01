@@ -33,7 +33,7 @@ esphome:
         const bool ota_update_password = (${ota_update_password});
         const std::string ota_new_password = "${ota_new_password}";
         if (ota_update_password) {
-          if (ota_new_password == "") {
+          if (ota_new_password.empty()) {
             ESP_LOGI("ota_update_password", "Setting blank OTA password");
           } else {
             ESP_LOGI("ota_update_password", "Setting new OTA password");
