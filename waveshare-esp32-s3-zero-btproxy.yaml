@@ -33,6 +33,8 @@ esphome:
         if (ota_update_password) {
           ESP_LOGI(TAG, "Setting new OTA password");
           id(ota_id).set_auth_password(ota_new_password);
+        } else {
+          ESP_LOGI(TAG, "No new OTA password");
         }
 
 
