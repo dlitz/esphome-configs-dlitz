@@ -9,6 +9,7 @@ substitutions:
   wifi_fast_connect: "false"
   ipv6_enable: "true"
   ibeacon_minor_id: 0
+  ota_password: ""
   ota_update_password: "false"
   ota_new_password: ""
 
@@ -65,7 +66,7 @@ api:
 ota:
   platform: esphome
   id: ota_id
-  password: ""
+  password: "${ota_password}"
 
 wifi:
   fast_connect: "${wifi_fast_connect}"
