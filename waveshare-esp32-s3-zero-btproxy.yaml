@@ -1,0 +1,270 @@
+substitutions:
+  name: "waveshare-esp32-s3-zero-btproxy"
+  friendly_name: "Bluetooth Proxy"
+  room: ""
+  device_description: "Waveshare ESP32-S3-Zero configured as Bluetooth proxy"
+  project_name: "DLitz.net waveshare-esp32-s3-zero-btproxy"
+  project_version: "v0.0.0"
+  sensor_update_interval: "10s"
+  wifi_fast_connect: "true"
+  ipv6_enable: "true"
+  ibeacon_minor_id: 0
+
+# Board: Waveshare ESP32-S3-Zero
+# Chip: ESP32-S3FH4R2
+# CPU speed: 240MHz
+# Flash: 4MB
+# PSRAM: 2MB, Quad, 80MHz
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  comment: "${device_description}"
+  area: "${room}"
+  name_add_mac_suffix: true
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+
+esp32:
+  variant: esp32s3
+  flash_size: 4MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      COMPILER_OPTIMIZATION_SIZE: y
+      CONFIG_MBEDTLS_SSL_PROTO_TLS1_2: "n"  # No need for TLS1.2 support?
+      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
+      CONFIG_MBEDTLS_DEFAULT_CERTIFICATE_BUNDLE: CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_CMN
+
+psram:
+  mode: quad
+  speed: 80MHz
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API with dynamic key
+api:
+  encryption:
+
+ota:
+  - platform: esphome
+
+wifi:
+  fast_connect: "${wifi_fast_connect}"
+  enable_btm: true
+  enable_rrm: true
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+
+captive_portal:
+
+network:
+  enable_ipv6: "${ipv6_enable}"
+  #min_ipv6_addr_count: 2
+
+dashboard_import:
+  #package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/waveshare-esp32-s3-zero-btproxy.yaml
+  package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/raw/branch/wip/waveshare-esp32-s3-zero-btproxy.yaml
+
+safe_mode:
+  reboot_timeout: 10min
+
+#esp32_ble_tracker:
+#  scan_parameters:
+#    active: false
+#
+#bluetooth_proxy:
+#  active: true
+#
+#esp32_ble_beacon:
+#  type: iBeacon
+#  uuid: 'c3c4fcfa-de20-44d5-98e3-686f2dc47875'
+#  major: 10159
+#  minor: ${ibeacon_minor_id}
+#  #measured_power: -51
+
+
+# "Buttons" created in home-assistant
+button:
+  - platform: restart
+    id: button_restart
+    name: Restart
+
+  - platform: safe_mode
+    id: button_safe_mode
+    name: Safe Mode Boot
+
+  - platform: factory_reset
+    id: button_factory_reset
+    name: Factory reset
+    disabled_by_default: true
+
+binary_sensor:
+  - platform: gpio
+    name: "BOOT button"
+    entity_category: diagnostic
+    pin:
+      number: GPIO0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+      ignore_strapping_warning: true
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_click:
+      - button.press: button_safe_mode
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: rgb_led
+    name: RGB LED
+    #entity_category: config
+    pin: GPIO21
+    rgb_order: RGB
+    chipset: WS2812
+    num_leds: 1
+    restore_mode: ALWAYS_ON
+    initial_state:    # XXX This doesn't seem to work for some rason
+      state: true
+      red: 0%
+      green: 100%
+      blue: 0%
+      brightness: 30%
+    effects:
+      - strobe:
+      - strobe:
+          name: Identify
+          colors:
+            - state: true
+              brightness: 30%
+              red: 0%
+              green: 0%
+              blue: 100%
+              duration: 250ms
+            - state: true
+              brightness: 100%
+              red: 0%
+              green: 0%
+              blue: 100%
+              duration: 250ms
+            - state: true
+              brightness: 100%
+              red: 0%
+              green: 100%
+              blue: 100%
+              duration: 250ms
+            - state: true
+              brightness: 30%
+              red: 0%
+              green: 100%
+              blue: 100%
+              duration: 250ms
+
+  - platform: status_led
+    internal: true
+    id: status_led_id
+    output: status_led_output
+
+output:
+  - platform: template
+    id: status_led_output
+    type: binary
+    write_action:
+      - lambda: |-
+          static int prev_state = -1;
+          //ESP_LOGD("my_status", "prev_state: %d, state: %d, state size: %d", prev_state, (int)state, sizeof(state));
+          if (prev_state <= 0 && state > 0) {
+            prev_state = state;
+            auto call = id(rgb_led).turn_on();
+            call.set_brightness(0.30);
+            call.set_rgb(1.0, 0.0, 0.0);    // red
+            call.set_transition_length(0);
+            call.set_publish(false);    // Don't spam the logs
+            call.perform();
+          } else if (prev_state > 0 && state == 0) {
+            prev_state = state;
+            auto call = id(rgb_led).make_call();
+            call.from_light_color_values(id(rgb_led).remote_values);
+            call.set_transition_length(0);
+            call.set_publish(false);    // Don't spam the logs
+            call.perform();
+          }
+
+switch:
+  - platform: template
+    name: Identify
+    entity_category: config
+    optimistic: true
+    turn_on_action:
+      - light.turn_on:
+          id: rgb_led
+          effect: Identify
+      - logger.log:
+          format: "identify ON"
+          level: INFO
+    turn_off_action:
+      - light.turn_off:
+          id: rgb_led
+      - logger.log:
+          format: "identify OFF"
+          level: INFO
+
+  - platform: template
+    id: trig_warning
+    name: Trigger warning
+    entity_category: diagnostic
+    disabled_by_default: true
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(trig_warning).status_set_warning("foo");
+    turn_off_action:
+      - lambda: |-
+          id(trig_warning).status_clear_warning();
+
+  - platform: template
+    id: trig_error
+    name: Trigger error
+    entity_category: diagnostic
+    disabled_by_default: true
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(trig_error).status_set_error("foo");
+    turn_off_action:
+      - lambda: |-
+          id(trig_error).status_clear_error();
+
+sensor:
+  - platform: uptime
+    type: seconds
+    name: Uptime
+
+  - platform: internal_temperature
+    name: "Internal Temperature"
+
+  #- platform: template
+  #  name: App state (uint8)
+  #  lambda: |-
+  #    return App.get_app_state();
+  #  update_interval: 1s
+
+text_sensor:
+  - platform: wifi_info
+    ssid:
+      name: ESP Connected SSID
+    bssid:
+      name: ESP Connected BSSID
+    mac_address:
+      name: ESP Mac Wifi Address
+    scan_results:
+      name: ESP Latest Scan Results
+    dns_address:
+      name: ESP DNS Address
+
