@@ -128,11 +128,16 @@ esp32_ble_tracker:
 bluetooth_proxy:
   active: false
 
-status_led:
-  pin:
-    number: GPIO9
-    inverted: true
-    ignore_strapping_warning: true
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: status_led_id
+    disabled_by_default: true
+    entity_category: config
+    pin:
+      number: GPIO9
+      inverted: true
+      ignore_strapping_warning: true
 
 time:
   - platform: homeassistant
@@ -245,38 +250,38 @@ sensor:
     frequency:
       id: line_frequency
       name: Frequency
-    current_a:
+    current_b:
       id: current_a
       name: Current A
-    current_b:
+    current_a:
       id: current_b
       name: Current B
-    power_factor_a:
+    power_factor_b:
       id: power_factor_a
       name: "Power factor A"
-    power_factor_b:
+    power_factor_a:
       id: power_factor_b
       name: "Power factor B"
-    apparent_power_a:
+    apparent_power_b:
       id: apparent_power_a
       name: "Apparent power A"
-    apparent_power_b:
+    apparent_power_a:
       id: apparent_power_b
       name: "Apparent power B"
-    active_power_a:
+    active_power_b:
       id: active_power_a
       name: "Power A"
       filters:
         - multiply: -1
-    active_power_b:
+    active_power_a:
       id: active_power_b
       name: "Power B"
       filters:
         - multiply: -1
-    reactive_power_a:
+    reactive_power_b:
       id: reactive_power_a
       name: "Reactive power A"
-    reactive_power_b:
+    reactive_power_a:
       id: reactive_power_b
       name: "Reactive power B"
 
@@ -334,7 +339,7 @@ sensor:
     name: "WiFi Signal dB"
     id: wifi_signal_db
     update_interval: 60s
-    entity_category: "diagnostic"
+    entity_category: diagnostic
 
   - platform: copy # Reports the WiFi signal strength in %
     source_id: wifi_signal_db
@@ -342,7 +347,7 @@ sensor:
     filters:
       - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
     unit_of_measurement: "Signal %"
-    entity_category: "diagnostic"
+    entity_category: diagnostic
     device_class: ""
 
 
