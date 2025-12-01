@@ -3,7 +3,7 @@ substitutions:
   friendly_name: "Bluetooth Proxy"
   room: ""
   device_description: "Waveshare ESP32-S3-Zero configured as Bluetooth proxy"
-  project_name: "DLitz.net waveshare-esp32-s3-zero-btproxy"
+  project_name: "dlitz.waveshare-esp32-s3-zero-btproxy"
   project_version: "v0.0.0"
   sensor_update_interval: "10s"
   wifi_fast_connect: "false"
