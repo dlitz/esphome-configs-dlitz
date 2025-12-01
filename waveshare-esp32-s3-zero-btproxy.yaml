@@ -133,8 +133,15 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_click:
-      - button.press: button_safe_mode
+    on_multi_click:
+      - timing:
+        - ON for 5s to 10s
+        then:
+          - button.press: button_safe_mode
+      - timing:
+        - ON for at least 10s
+        then:
+          - button.press: button_factory_reset
 
 light:
   - platform: esp32_rmt_led_strip
