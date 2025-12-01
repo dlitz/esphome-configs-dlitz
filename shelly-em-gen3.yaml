@@ -8,6 +8,10 @@ substitutions:
   sensor_update_interval: "10s"
   wifi_fast_connect: "false"
   ipv6_enable: "true"
+  update_interval: 5s
+  calibration_voltage_gain: 0x32c78f
+  calibration_current_gain_a: 0x490bb5
+  calibration_current_gain_b: 0x498c15
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
@@ -159,6 +163,7 @@ button:
 binary_sensor:
   - platform: gpio
     name: "Button"
+    id: button_id
     entity_category: diagnostic
     pin:
       number: GPIO1
@@ -169,12 +174,21 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_click:
-      - button.press: button_safe_mode
+    on_multi_click:
+      - timing:
+        - ON for 5s to 10s
+        then:
+          - button.press: button_safe_mode
+      - timing:
+        - ON for at least 10s
+        then:
+          - button.press: button_factory_reset
 
   - platform: gpio
-    name: "GPIO18"
+    id: gpio18_pin_id
+    name: "GPIO Pin"
     entity_category: diagnostic
+    disabled_by_default: true
     pin:
       number: GPIO18
       inverted: true
@@ -195,7 +209,7 @@ switch:
   # Dry-contact relay - normally open
   - platform: gpio
     name: Relay
-    id: relay
+    id: relay_id
     pin: GPIO0
 
   #- { platform: gpio, name: "GPIO5", pin: { number: GPIO5, inverted: true, mode: { output: true, open_drain: true }}}
@@ -236,13 +250,13 @@ sensor:
   # Note that on the Shelly EM Gen3, channels "A" and "B" are swapped between the chipset and the labels on the device.
   - platform: ade7953_i2c
     #irq_pin: GPIO1      # TODO - what value goes here?
-    update_interval: 1s
+    update_interval: "${update_interval}"
     use_accumulated_energy_registers: true
 
     # Calibrated on device E4:B0:63:D4:3E:00
-    voltage_gain: 0x32c78f
-    current_gain_a: 0x490bb5
-    current_gain_b: 0x498c15
+    voltage_gain: ${calibration_voltage_gain}
+    current_gain_a: ${calibration_current_gain_a}
+    current_gain_b: ${calibration_current_gain_b}
 
     voltage:
       id: line_voltage
@@ -314,6 +328,7 @@ sensor:
       - multiply: 0.001
 
   - platform: total_daily_energy
+    id: total_daily_energy_a
     name: "Total daily energy A"
     power_id: active_power_a
     icon: mdi:meter-electric
@@ -325,6 +340,7 @@ sensor:
       - multiply: 0.001
 
   - platform: total_daily_energy
+    id: total_daily_energy_b
     name: "Total daily energy B"
     power_id: active_power_b
     icon: mdi:meter-electric
@@ -342,6 +358,7 @@ sensor:
     entity_category: diagnostic
 
   - platform: copy # Reports the WiFi signal strength in %
+    id: wifi_signal_percent
     source_id: wifi_signal_db
     name: "WiFi Signal Percent"
     filters:
@@ -359,18 +376,6 @@ text_sensor:
       name: ESP Connected BSSID
     mac_address:
       name: ESP Mac Wifi Address
-    ip_address:
-      name: ESP IP Address
-      address_0:
-        name: ESP IP Address 0
-      address_1:
-        name: ESP IP Address 1
-      address_2:
-        name: ESP IP Address 2
-      address_3:
-        name: ESP IP Address 3
-      address_4:
-        name: ESP IP Address 4
     scan_results:
       name: ESP Latest Scan Results
       disabled_by_default: true
