@@ -9,7 +9,6 @@ substitutions:
   wifi_fast_connect: "false"
   ipv6_enable: "true"
   ibeacon_minor_id: 0
-  ota_password: ""
   ota_update_password: "false"
   ota_new_password: ""
 
@@ -29,6 +28,7 @@ esphome:
     version: "${project_version}"
   on_boot:
     - lambda: |-
+        #ifdef USE_OTA_PASSWORD
         const bool ota_update_password = (${ota_update_password});
         const std::string ota_new_password = "${ota_new_password}";
         if (ota_update_password) {
@@ -37,6 +37,9 @@ esphome:
         } else {
           ESP_LOGI("ota_update_password", "No new OTA password");
         }
+        #else
+          ESP_LOGI("ota_update_password", "No OTA password: USE_OTA_PASSWORD not defined");
+        #endif
 
 
 esp32:
@@ -66,7 +69,6 @@ api:
 ota:
   platform: esphome
   id: ota_id
-  password: "${ota_password}"
 
 wifi:
   fast_connect: "${wifi_fast_connect}"
