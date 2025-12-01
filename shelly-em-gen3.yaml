@@ -1,0 +1,374 @@
+substitutions:
+  name: "shelly-em-gen3"
+  friendly_name: "Shelly EM Gen3"
+  room: ""
+  device_description: "Smart wifi and bluetooth energy meter with current transformer"
+  project_name: "dlitz.shelly-em-gen3"
+  project_version: "v0.0.0"
+  sensor_update_interval: "10s"
+  wifi_fast_connect: "false"
+  ipv6_enable: "true"
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
+
+# Shelly EM Gen3
+# PCB markings: "EM Gen3_v0.1.3", "B2519"
+# CPU: ESP32-Shelly (ESP32-C3)
+# Ref: https://community.home-assistant.io/t/shelly-em-gen3-solved/944171
+#
+#GPIO 0 is Built-In Relay
+#GPIO 1 is Built-In Button
+#GPIO 2 does not work as IRQ
+#GPIO 3 is ADC for NTC temperature
+#GPIO 4 does not work as IRQ
+#GPIO 5 does not work as IRQ
+#GPIO 6 is I2C SDA; does not work as IRQ
+#GPIO 7 is I2C SCL; does not work as IRQ
+#GPIO 8 is a strapping pin; does not work as IRQ
+#GPIO 9 is Status LED
+#GPIO 10 does not work as IRQ
+#GPIO 11 does not work as IRQ
+#GPIO 12 is reserved for SPI (SPIHD) when I tried flashing
+#GPIO 13 is reserved for SPI (SPIWP) when I tried flashing
+#GPIO 14 is reserved for SPI (SPICS0) when I tried flashing
+#GPIO 15 is reserved for SPI (CLK) when I tried flashing
+#GPIO 16 is reserved for SPI (SPID) when I tried flashing
+#GPIO 17 is reserved for SPI (SPIQ) when I tried flashing
+#GPIO 18 does not work as IRQ
+#GPIO 19 does not work as IRQ
+#GPIO 20 does not work as IRQ
+#GPIO 21 does not work as IRQ
+
+# -----
+# Actual GPIOs:
+#   GPIO0 - dry-contact relay (normally open)
+#   GPIO1 - Pushbutton
+#   GPIO3 - ADC for NTC temperature probe
+#   GPIO6 - I2C SCL
+#   GPIO7 - I2C SDA
+#   GPIO9 - status LED active-low, boot-mode strapping pin (pin 2 of 7-pin header)
+#   GPIO18 - pin 7 of 7-pin header
+
+# I2C devices:
+#  0x38 - ADE7953 Power Sensor
+#  0x51 - AiP8563 Time Source (battery-backed RTC)
+
+# Outputting LOW on GPIO5 seems to produce HIGH on GPIO4, and vice versa
+
+#external_components:
+#  - source: github://dlitz/esphome@fix-ade7953-bvgain
+#    components: [ade7953_i2c, ade7953_base]
+#    #refresh: 1h
+#    refresh: always
+
+external_components:
+  - source: github://pr#12180
+    components: [ade7953_base]
+    refresh: 1h
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  comment: "${device_description}"
+  area: "${room}"
+  name_add_mac_suffix: true
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+  #min_version: "2025.11.3"
+
+esp32:
+  variant: esp32c3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      COMPILER_OPTIMIZATION_SIZE: "y"
+      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
+      CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
+
+# Enable logging
+logger:
+  level: DEBUG
+  hardware_uart: uart0
+
+# Enable Home Assistant API with dynamic key
+api:
+  encryption:
+
+ota:
+  - platform: esphome
+
+wifi:
+  fast_connect: "${wifi_fast_connect}"
+  enable_btm: true
+  enable_rrm: true
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+
+captive_portal:
+
+network:
+  enable_ipv6: "${ipv6_enable}"
+
+safe_mode:
+  reboot_timeout: 10min
+
+i2c:
+  scl: GPIO6
+  sda: GPIO7
+  scan: true
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
+
+bluetooth_proxy:
+  active: false
+
+status_led:
+  pin:
+    number: GPIO9
+    inverted: true
+    ignore_strapping_warning: true
+
+time:
+  - platform: homeassistant
+
+button:
+  - platform: restart
+    id: button_restart
+    name: Restart
+
+  - platform: safe_mode
+    id: button_safe_mode
+    name: Safe Mode Boot
+
+  - platform: factory_reset
+    id: button_factory_reset
+    name: Factory reset
+    disabled_by_default: true
+
+binary_sensor:
+  - platform: gpio
+    name: "Button"
+    entity_category: diagnostic
+    pin:
+      number: GPIO1
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_click:
+      - button.press: button_safe_mode
+
+  - platform: gpio
+    name: "GPIO18"
+    entity_category: diagnostic
+    pin:
+      number: GPIO18
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+
+  #- { platform: gpio, name: "GPIO4", pin: GPIO4 }
+  #- { platform: gpio, name: "GPIO5", pin: GPIO5 }
+  #- { platform: gpio, name: "GPIO8", pin: GPIO8 }
+  #- { platform: gpio, name: "GPIO10", pin: GPIO10 }
+  #- { platform: gpio, name: "GPIO11", pin: GPIO11 }
+  #- { platform: gpio, name: "GPIO19", pin: GPIO19 }
+  #- { platform: gpio, name: "GPIO20", pin: GPIO20 }
+  #- { platform: gpio, name: "GPIO21", pin: GPIO21 }
+
+switch:
+  # Dry-contact relay - normally open
+  - platform: gpio
+    name: Relay
+    id: relay
+    pin: GPIO0
+
+  #- { platform: gpio, name: "GPIO5", pin: { number: GPIO5, inverted: true, mode: { output: true, open_drain: true }}}
+  #- { platform: gpio, name: "GPIO8", pin: { number: GPIO8, inverted: true, mode: { output: true, open_drain: true }}}
+  #- { platform: gpio, name: "GPIO11", pin: { number: GPIO11, inverted: true, mode: { output: true, open_drain: true }}}
+  #- { platform: gpio, name: "GPIO20", pin: { number: GPIO20, inverted: true, mode: { output: true, open_drain: true }}}
+  #- { platform: gpio, name: "GPIO21", pin: { number: GPIO21, inverted: true, mode: { output: true, open_drain: true }}}
+
+sensor:
+  - platform: uptime
+    type: seconds
+    name: Uptime
+
+  - platform: internal_temperature
+    name: "ESP32 Internal Temperature"
+
+  - platform: ntc
+    name: "Temperature"
+    entity_category: diagnostic
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:thermometer"
+    sensor: temp_resistance_reading
+    calibration:
+      b_constant: 3350
+      reference_resistance: 10kOhm
+      reference_temperature: 298.15K
+  - platform: resistance
+    id: temp_resistance_reading
+    sensor: temp_analog_reading
+    configuration: DOWNSTREAM
+    resistor: 10kOhm
+  - platform: adc
+    id: temp_analog_reading
+    pin: GPIO3
+    attenuation: 12db
+
+  # Note that on the Shelly EM Gen3, channels "A" and "B" are swapped between the chipset and the labels on the device.
+  - platform: ade7953_i2c
+    #irq_pin: GPIO1      # TODO - what value goes here?
+    update_interval: 1s
+    use_accumulated_energy_registers: true
+
+    # Calibrated on device E4:B0:63:D4:3E:00
+    voltage_gain: 0x32c78f
+    current_gain_a: 0x490bb5
+    current_gain_b: 0x498c15
+
+    voltage:
+      id: line_voltage
+      name: Voltage
+    frequency:
+      id: line_frequency
+      name: Frequency
+    current_a:
+      id: current_a
+      name: Current A
+    current_b:
+      id: current_b
+      name: Current B
+    power_factor_a:
+      id: power_factor_a
+      name: "Power factor A"
+    power_factor_b:
+      id: power_factor_b
+      name: "Power factor B"
+    apparent_power_a:
+      id: apparent_power_a
+      name: "Apparent power A"
+    apparent_power_b:
+      id: apparent_power_b
+      name: "Apparent power B"
+    active_power_a:
+      id: active_power_a
+      name: "Power A"
+      filters:
+        - multiply: -1
+    active_power_b:
+      id: active_power_b
+      name: "Power B"
+      filters:
+        - multiply: -1
+    reactive_power_a:
+      id: reactive_power_a
+      name: "Reactive power A"
+    reactive_power_b:
+      id: reactive_power_b
+      name: "Reactive power B"
+
+  - platform: integration
+    id: energy_a
+    name: 'Energy A'
+    sensor: active_power_a
+    restore: false
+    time_unit: h
+    icon: mdi:meter-electric
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: integration
+    id: energy_b
+    name: 'Energy B'
+    sensor: active_power_b
+    restore: false
+    time_unit: h
+    icon: mdi:meter-electric
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: total_daily_energy
+    name: "Total daily energy A"
+    power_id: active_power_a
+    icon: mdi:meter-electric
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: total_daily_energy
+    name: "Total daily energy B"
+    power_id: active_power_b
+    icon: mdi:meter-electric
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+
+  - platform: copy # Reports the WiFi signal strength in %
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: "diagnostic"
+    device_class: ""
+
+
+text_sensor:
+  - platform: wifi_info
+    ssid:
+      name: ESP Connected SSID
+    bssid:
+      name: ESP Connected BSSID
+    mac_address:
+      name: ESP Mac Wifi Address
+    ip_address:
+      name: ESP IP Address
+      address_0:
+        name: ESP IP Address 0
+      address_1:
+        name: ESP IP Address 1
+      address_2:
+        name: ESP IP Address 2
+      address_3:
+        name: ESP IP Address 3
+      address_4:
+        name: ESP IP Address 4
+    scan_results:
+      name: ESP Latest Scan Results
+      disabled_by_default: true
+    dns_address:
+      name: ESP DNS Address
+
