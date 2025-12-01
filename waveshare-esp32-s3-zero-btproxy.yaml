@@ -65,7 +65,7 @@ api:
 ota:
   platform: esphome
   id: ota_id
-  password: ""
+  password:
 
 wifi:
   fast_connect: "${wifi_fast_connect}"
