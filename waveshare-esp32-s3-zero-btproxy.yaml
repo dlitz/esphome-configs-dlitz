@@ -9,6 +9,7 @@ substitutions:
   wifi_fast_connect: "false"
   ipv6_enable: "true"
   ibeacon_minor_id: 0
+  ota_clear_password: false
   ota_password: ""
   ota_new_password: ""
 
@@ -29,9 +30,13 @@ esphome:
   on_boot:
     - lambda: |-
         const std::string new_ota_password = "${ota_new_password}";
+        const bool ota_clear_password = ${ota_clear_password};
         if (new_ota_password != "") {
           id(ota_id).set_auth_password(new_ota_password);
+        } else if (ota_clear_password) {
+          id(ota_id).set_auth_password("");
         }
+
 
 esp32:
   variant: esp32s3
