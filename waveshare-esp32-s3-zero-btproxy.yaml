@@ -9,7 +9,7 @@ substitutions:
   wifi_fast_connect: "false"
   ipv6_enable: "true"
   ibeacon_minor_id: 0
-  ota_update_password: false
+  ota_update_password: "false"
   ota_new_password: ""
 
 # Board: Waveshare ESP32-S3-Zero
