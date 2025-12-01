@@ -9,6 +9,8 @@ substitutions:
   wifi_fast_connect: "false"
   ipv6_enable: "true"
   ibeacon_minor_id: 0
+  ota_password: ""
+  ota_new_password: ""
 
 # Board: Waveshare ESP32-S3-Zero
 # Chip: ESP32-S3FH4R2
@@ -24,6 +26,12 @@ esphome:
   project:
     name: "${project_name}"
     version: "${project_version}"
+  on_boot:
+    - lambda: |-
+        const std::string new_ota_password = "${ota_new_password}";
+        if (new_ota_password != "") {
+          id(ota_id).set_auth_password(new_ota_password);
+        }
 
 esp32:
   variant: esp32s3
@@ -51,6 +59,8 @@ api:
 
 ota:
   - platform: esphome
+    id: ota_id
+    password: "${ota_password}"
 
 wifi:
   fast_connect: "${wifi_fast_connect}"

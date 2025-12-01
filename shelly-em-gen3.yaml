@@ -12,6 +12,8 @@ substitutions:
   calibration_voltage_gain: 0x32c78f
   calibration_current_gain_a: 0x490bb5
   calibration_current_gain_b: 0x498c15
+  ota_password: ""
+  ota_new_password: ""
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
@@ -81,6 +83,12 @@ esphome:
     name: "${project_name}"
     version: "${project_version}"
   #min_version: "2025.11.3"
+  on_boot:
+    - lambda: |-
+        const std::string new_ota_password = "${ota_new_password}";
+        if (new_ota_password != "") {
+          id(ota_id).set_auth_password(new_ota_password);
+        }
 
 esp32:
   variant: esp32c3
@@ -103,6 +111,8 @@ api:
 
 ota:
   - platform: esphome
+    id: ota_id
+    password: "${ota_password}"
 
 wifi:
   fast_connect: "${wifi_fast_connect}"
