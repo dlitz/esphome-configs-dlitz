@@ -1,5 +1,5 @@
 substitutions:
-  name: "waveshare-esp32-s3-zero-btproxy"
+  name: "esp32-s3-zero-btproxy"
   friendly_name: "Bluetooth Proxy"
   room: ""
   device_description: "Waveshare ESP32-S3-Zero configured as Bluetooth proxy"
