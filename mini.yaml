@@ -1,0 +1,36 @@
+substitutions:
+  name: "mini"
+  friendly_name: "Mini Example"
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/mini.yaml@wip
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  name_add_mac_suffix: true
+  project:
+    name: "dlitz.mini"
+    version: "v0.0.0"
+
+bk72xx:
+  board: cb3s
+  # Flash size: 2MiB
+  # CPU Frequency: 120MHz
+
+# Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+api:
+
+ota:
+  platform: esphome
+
+wifi:
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+
+captive_portal:
+
