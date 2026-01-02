@@ -63,7 +63,7 @@ preferences:
   flash_write_interval: 300s
 
 factory_reset:
-  reboots_required: 10
+  resets_required: 10
   max_delay: 10s
   on_increment:
     - logger.log:
