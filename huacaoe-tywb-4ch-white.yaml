@@ -35,10 +35,40 @@ bk72xx:
   board: cb3s
   # Flash size: 2MiB
   # CPU Frequency: 120MHz
+
   framework:  # LibreTiny
     loglevel: debug
+    debug:
+      - mdns
+      - lwip
     sdk_silent: auto
-    gpio_recover: false
+    options:
+      # LT_LOG_HEAP: 1
+      # LT_AUTO_DOWNLOAD_REBOOT: 1
+      MDNS_TXT_RDATA_SIZE: 384
+      # https://github.com/libretiny-eu/libretiny/issues/316
+      LWIP_DHCP_DOES_ACD_CHECK: 0
+
+    # version: "1.9.2"
+    # source: "https://github.com/dlitz/libretiny.git#mdns-big-txt"
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dlitz/esphome-configs-dlitz
+      ref: wip
+    refresh: 1s
+
+preferences:
+  flash_write_interval: 300s
+
+factory_reset:
+  reboots_required: 10
+  max_delay: 10s
+  on_increment:
+    - logger.log:
+        format: "(factory_reset) Fast power cycle count now %u, target %u"
+        args: [x, target]
 
 # Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
 logger:
