@@ -12,11 +12,36 @@ esphome:
   project:
     name: "dlitz.mini"
     version: "v0.0.0"
+  platformio_options:
+    platform_packages:
+      - "library-lwip @ https://github.com/dlitz/lwip.git#mdns-big-txt_bdk"
+  includes:
+    - "<lwip/apps/mdns.h>"
 
 bk72xx:
   board: cb3s
   # Flash size: 2MiB
   # CPU Frequency: 120MHz
+  framework:
+    loglevel: debug
+    debug:
+      - mdns
+      - lwip
+    sdk_silent: auto
+    options:
+      # LT_LOG_HEAP: 1
+      LT_AUTO_DOWNLOAD_REBOOT: 1
+      MDNS_TXT_RDATA_SIZE: 384
+    # version: "1.9.2"
+    # source: "https://github.com/dlitz/libretiny.git#mdns-big-txt"
+
+# external_components:
+#   - source:
+#       type: git
+#       url: https://github.com/dlitz/esphome.git
+#       ref: mdns-big-txt
+#     components: [libretiny, bk72xx]
+#     refresh: always
 
 # Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
 logger:
@@ -29,8 +54,29 @@ ota:
   platform: esphome
 
 wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # fast_connect: true
+
+  # use_address: "mini-61b5d1.local"
+
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
 
 captive_portal:
 
+text_sensor:
+  - platform: libretiny
+    version:
+      name: LibreTiny Version
+
+sensor:
+  - platform: template
+    name: "MDNS_TXT_RDATA_SIZE"
+    accuracy_decimals: 0
+    lambda: |-
+      #ifdef MDNS_TXT_RDATA_SIZE
+      return MDNS_TXT_RDATA_SIZE;
+      #else
+      return {};
+      #endif
