@@ -26,8 +26,8 @@ bk72xx:
   framework:
     loglevel: debug
     debug:
+      # - lwip
       - mdns
-      - lwip
     sdk_silent: auto
     options:
       # LT_LOG_HEAP: 1
