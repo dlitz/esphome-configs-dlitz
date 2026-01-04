@@ -93,6 +93,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
+    password: !secret wifi_fallback_ap_password
 
 captive_portal:
 
@@ -187,8 +188,15 @@ switch:
 
 sensor:
   - platform: uptime
-    type: seconds
+    id: uptime_seconds
     name: Uptime
+    type: seconds
+    disabled_by_default: true
+
+  - platform: uptime
+    id: last_reboot
+    name: Last Reboot
+    type: timestamp
 
   - platform: internal_temperature
     id: cpu_temperature
