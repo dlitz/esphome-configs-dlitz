@@ -54,10 +54,9 @@ bk72xx:
     sdk_silent: auto
     options:
       # LT_LOG_HEAP: 1
-      # LT_AUTO_DOWNLOAD_REBOOT: 1
-      MDNS_TXT_RDATA_SIZE: 384
-      # https://github.com/libretiny-eu/libretiny/issues/316
-      LWIP_DHCP_DOES_ACD_CHECK: 0
+      LT_AUTO_DOWNLOAD_REBOOT: 1  # this only works when the RXD1 GPIO is configured as a serial port
+      MDNS_TXT_RDATA_SIZE: 384    # https://github.com/esphome/esphome/issues/11281
+      LWIP_DHCP_DOES_ACD_CHECK: 0 # https://github.com/libretiny-eu/libretiny/issues/316
 
     # version: "1.9.2"
     # source: "https://github.com/dlitz/libretiny.git#mdns-big-txt"
@@ -99,6 +98,7 @@ ota:
 wifi:
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
+    password: !secret wifi_fallback_ap_password
 
 captive_portal:
 
@@ -117,12 +117,19 @@ time:
 
 sensor:
   - platform: uptime
+    id: uptime_seconds
+    type: seconds
+    name: Uptime
+    disabled_by_default: true
+
+  - platform: uptime
+    id: uptime_timestamp
     type: timestamp
-    name: Uptime Sensor
-    id: uptime_sensor
+    name: Last Reboot
 
   - platform: internal_temperature
-    name: "CPU temperature"
+    id: cpu_temperature
+    name: "CPU Temperature"
 
   - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
     name: "WiFi Signal dB"
@@ -377,6 +384,8 @@ binary_sensor:
         then:
           - logger.log: "Button held for over 10s: Factory reset"
           - button.press: button_factory_reset
+
+  - !remove button_3  # DEBUG FIXME
 
 switch:
   - platform: gpio
