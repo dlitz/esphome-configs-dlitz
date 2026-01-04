@@ -177,12 +177,6 @@ switch:
     id: relay_id
     pin: GPIO0
 
-  #- { platform: gpio, name: "GPIO5", pin: { number: GPIO5, inverted: true, mode: { output: true, open_drain: true }}}
-  #- { platform: gpio, name: "GPIO8", pin: { number: GPIO8, inverted: true, mode: { output: true, open_drain: true }}}
-  #- { platform: gpio, name: "GPIO11", pin: { number: GPIO11, inverted: true, mode: { output: true, open_drain: true }}}
-  #- { platform: gpio, name: "GPIO20", pin: { number: GPIO20, inverted: true, mode: { output: true, open_drain: true }}}
-  #- { platform: gpio, name: "GPIO21", pin: { number: GPIO21, inverted: true, mode: { output: true, open_drain: true }}}
-
 sensor:
   - platform: uptime
     type: seconds
