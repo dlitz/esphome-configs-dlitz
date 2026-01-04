@@ -61,9 +61,9 @@ bk72xx:
 external_components:
   - source:
       type: git
-      url: https://github.com/dlitz/esphome-configs-dlitz
+      url: https://github.com/dlitz/esphome-configs-dlitz.git
       ref: wip
-    refresh: 1s
+    refresh: always
 
 preferences:
   flash_write_interval: 300s
