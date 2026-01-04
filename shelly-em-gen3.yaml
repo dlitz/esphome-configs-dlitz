@@ -27,14 +27,13 @@ substitutions:
   project_version: "v0.0.0"
   sensor_update_interval: "10s"
   wifi_fast_connect: "false"
-  ipv6_enable: "true"
   update_interval: 5s
   calibration_voltage_gain: 0x32c78f    # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_a: 0x490bb5  # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_b: 0x498c15  # Calibrated on device E4:B0:63:D4:3E:00
   ota_password: ""
+  ota_update_password: "false"
   ota_new_password: ""
-  _use_new_ota_password: "${ota_new_password and 1 or 0}"   # do not edit
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
@@ -48,20 +47,25 @@ esphome:
   project:
     name: "${project_name}"
     version: "${project_version}"
-  min_version: 2025.11.3    # for ade7953 bugfix #12180
   on_boot:
     - lambda: |-
-        #if ${_use_new_ota_password}
-        # ifdef USE_OTA_PASSWORD
-        const std::string new_ota_password = "${ota_new_password}";
-        id(ota_id).set_auth_password(new_ota_password);
-        ESP_LOGI("new_ota_password", "Configured new OTA password.");
-        # else /* USE_OTA_PASSWORD */
-        #  error "cannot set new OTA password - not compiled with OTA support (hint: set a dummy ota_password)"
-        # endif /* USE_OTA_PASSWORD */
+        #ifdef USE_OTA_PASSWORD
+        const bool ota_update_password = (${ota_update_password});
+        const std::string ota_new_password = "${ota_new_password}";
+        if (ota_update_password) {
+          if (ota_new_password.empty()) {
+            ESP_LOGI("ota_update_password", "Setting blank OTA password");
+          } else {
+            ESP_LOGI("ota_update_password", "Setting new OTA password");
+          }
+          id(ota_id).set_auth_password(ota_new_password);
+        } else {
+          ESP_LOGI("ota_update_password", "No new OTA password");
+        }
         #else
-        # warning "no password to set."
-        #endif /* ota_new_password */
+        #  error "cannot set new OTA password - not compiled with OTA support (hint: set a dummy ota_password)"
+        #endif
+  min_version: 2025.11.3    # for ade7953 bugfix #12180
 
 esp32:
   variant: esp32c3
@@ -70,7 +74,8 @@ esp32:
     type: esp-idf
     sdkconfig_options:
       CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
-      CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
+      CONFIG_MBEDTLS_DEFAULT_CERTIFICATE_BUNDLE: CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_CMN
+      # CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
 
 # Enable logging
 logger:
@@ -84,7 +89,7 @@ api:
 ota:
   - platform: esphome
     id: ota_id
-    password: "${ota_password}"
+    password: "${ota_password or ota_new_password}"
 
 wifi:
   fast_connect: "${wifi_fast_connect}"
@@ -98,7 +103,8 @@ wifi:
 captive_portal:
 
 network:
-  enable_ipv6: "${ipv6_enable}"
+  enable_ipv6: true
+  # min_ipv6_addr_count: 2
 
 safe_mode:
   reboot_timeout: 10min
@@ -151,10 +157,10 @@ binary_sensor:
     entity_category: diagnostic
     pin:
       number: GPIO1
-      inverted: true
       mode:
         input: true
         pullup: true
+      inverted: true
     filters:
       - settle: 10ms
     on_multi_click:

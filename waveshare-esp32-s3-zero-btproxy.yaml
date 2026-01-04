@@ -1,3 +1,9 @@
+# Board: Waveshare ESP32-S3-Zero
+# Chip: ESP32-S3FH4R2
+# CPU speed: 240MHz
+# Flash: 4MB
+# PSRAM: 2MB, Quad, 80MHz
+
 substitutions:
   name: "esp32-s3-zero-btproxy"
   friendly_name: "Bluetooth Proxy"
@@ -7,17 +13,14 @@ substitutions:
   project_version: "v0.0.1"
   sensor_update_interval: "10s"
   wifi_fast_connect: "false"
-  ipv6_enable: "true"
   ibeacon_minor_id: 0
   ota_password: ""
   ota_update_password: "false"
   ota_new_password: ""
 
-# Board: Waveshare ESP32-S3-Zero
-# Chip: ESP32-S3FH4R2
-# CPU speed: 240MHz
-# Flash: 4MB
-# PSRAM: 2MB, Quad, 80MHz
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/waveshare-esp32-s3-zero-btproxy.yaml@wip
+
 esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"
@@ -43,9 +46,8 @@ esphome:
           ESP_LOGI("ota_update_password", "No new OTA password");
         }
         #else
-          ESP_LOGI("ota_update_password", "No OTA password: USE_OTA_PASSWORD not defined");
+        #  error "cannot set new OTA password - not compiled with OTA support (hint: set a dummy ota_password)"
         #endif
-
 
 esp32:
   variant: esp32s3
@@ -54,10 +56,9 @@ esp32:
   framework:
     type: esp-idf
     sdkconfig_options:
-      COMPILER_OPTIMIZATION_SIZE: y
-      CONFIG_MBEDTLS_SSL_PROTO_TLS1_2: "n"  # No need for TLS1.2 support?
       CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
       CONFIG_MBEDTLS_DEFAULT_CERTIFICATE_BUNDLE: CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_CMN
+      # CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
 
 psram:
   mode: quad
@@ -72,9 +73,9 @@ api:
   encryption:
 
 ota:
-  platform: esphome
-  id: ota_id
-  password: "${ota_password or ota_new_password}"
+  - platform: esphome
+    id: ota_id
+    password: "${ota_password or ota_new_password}"
 
 wifi:
   fast_connect: "${wifi_fast_connect}"
@@ -83,37 +84,32 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
+    password: !secret wifi_fallback_ap_password
 
 captive_portal:
 
 network:
-  enable_ipv6: "${ipv6_enable}"
-  #min_ipv6_addr_count: 2
-
-dashboard_import:
-  #package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/waveshare-esp32-s3-zero-btproxy.yaml
-  #package_import_url: https://gitea.dlitz.net/dlitz/esphome-configs-dlitz/raw/branch/wip/waveshare-esp32-s3-zero-btproxy.yaml
-  package_import_url: github://dlitz/esphome-configs-dlitz/waveshare-esp32-s3-zero-btproxy.yaml@wip
+  enable_ipv6: true
+  # min_ipv6_addr_count: 2
 
 safe_mode:
   reboot_timeout: 10min
 
-#esp32_ble_tracker:
-#  scan_parameters:
-#    active: false
+# esp32_ble_tracker:
+#   scan_parameters:
+#     active: false
 #
-#bluetooth_proxy:
-#  active: true
+# bluetooth_proxy:
+#   active: true
 #
-#esp32_ble_beacon:
-#  type: iBeacon
-#  uuid: 'c3c4fcfa-de20-44d5-98e3-686f2dc47875'
-#  major: 10159
-#  minor: ${ibeacon_minor_id}
-#  #measured_power: -51
+# esp32_ble_beacon:
+#   type: iBeacon
+#   uuid: 'c3c4fcfa-de20-44d5-98e3-686f2dc47875'
+#   major: 10159
+#   minor: ${ibeacon_minor_id}
+#   #measured_power: -51
 
 
-# "Buttons" created in home-assistant
 button:
   - platform: restart
     id: button_restart
@@ -140,8 +136,7 @@ binary_sensor:
       inverted: true
       ignore_strapping_warning: true
     filters:
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+      - settle: 10ms
     on_multi_click:
       - timing:
         - ON for 5s to 10s
@@ -275,11 +270,19 @@ switch:
 
 sensor:
   - platform: uptime
-    type: seconds
+    id: uptime_seconds
     name: Uptime
+    type: seconds
+    disabled_by_default: true
+
+  - platform: uptime
+    id: last_reboot
+    name: Last Reboot
+    type: timestamp
 
   - platform: internal_temperature
-    name: "Internal Temperature"
+    id: cpu_temperature
+    name: "CPU Temperature"
 
   #- platform: template
   #  name: App state (uint8)
