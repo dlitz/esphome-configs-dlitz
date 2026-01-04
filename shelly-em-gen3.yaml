@@ -34,6 +34,7 @@ substitutions:
   calibration_current_gain_b: 0x498c15  # Calibrated on device E4:B0:63:D4:3E:00
   ota_password: ""
   ota_new_password: ""
+  _use_new_ota_password: "${ota_new_password and 1 or 0}"   # do not edit
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
@@ -50,10 +51,17 @@ esphome:
   min_version: 2025.11.3    # for ade7953 bugfix #12180
   on_boot:
     - lambda: |-
+        #if ${_use_new_ota_password}
+        # ifdef USE_OTA_PASSWORD
         const std::string new_ota_password = "${ota_new_password}";
-        if (new_ota_password != "") {
-          id(ota_id).set_auth_password(new_ota_password);
-        }
+        id(ota_id).set_auth_password(new_ota_password);
+        ESP_LOGI("new_ota_password", "Configured new OTA password.");
+        # else /* USE_OTA_PASSWORD */
+        #  error "cannot set new OTA password - not compiled with OTA support (hint: set a dummy ota_password)"
+        # endif /* USE_OTA_PASSWORD */
+        #else
+        # warning "no password to set."
+        #endif /* ota_new_password */
 
 esp32:
   variant: esp32c3
