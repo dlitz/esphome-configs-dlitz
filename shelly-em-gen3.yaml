@@ -1,3 +1,23 @@
+# Shelly EM Gen3
+# PCB markings: "EM Gen3_v0.1.3", "B2519"
+# CPU: ESP32-Shelly (ESP32-C3)
+# Ref: https://community.home-assistant.io/t/shelly-em-gen3-solved/944171
+#
+# GPIOs:
+#   GPIO0 - Dry-contact relay (normally open)
+#   GPIO1 - Pushbutton
+#   GPIO3 - ADC for NTC temperature probe
+#   GPIO6 - I2C SCL
+#   GPIO7 - I2C SDA
+#   GPIO9 - Status LED (active low)
+#   GPIO18 - Pin 7 of 7-pin header
+#
+# I2C devices:
+#  0x38 - ADE7953 Power Sensor
+#  0x51 - AiP8563 Time Source (battery-backed RTC)
+
+# Outputting LOW on GPIO5 seems to produce HIGH on GPIO4, and vice versa
+
 substitutions:
   name: "shelly-em-gen3"
   friendly_name: "Shelly EM Gen3"
@@ -9,69 +29,14 @@ substitutions:
   wifi_fast_connect: "false"
   ipv6_enable: "true"
   update_interval: 5s
-  calibration_voltage_gain: 0x32c78f
-  calibration_current_gain_a: 0x490bb5
-  calibration_current_gain_b: 0x498c15
+  calibration_voltage_gain: 0x32c78f    # Calibrated on device E4:B0:63:D4:3E:00
+  calibration_current_gain_a: 0x490bb5  # Calibrated on device E4:B0:63:D4:3E:00
+  calibration_current_gain_b: 0x498c15  # Calibrated on device E4:B0:63:D4:3E:00
   ota_password: ""
   ota_new_password: ""
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
-
-# Shelly EM Gen3
-# PCB markings: "EM Gen3_v0.1.3", "B2519"
-# CPU: ESP32-Shelly (ESP32-C3)
-# Ref: https://community.home-assistant.io/t/shelly-em-gen3-solved/944171
-#
-#GPIO 0 is Built-In Relay
-#GPIO 1 is Built-In Button
-#GPIO 2 does not work as IRQ
-#GPIO 3 is ADC for NTC temperature
-#GPIO 4 does not work as IRQ
-#GPIO 5 does not work as IRQ
-#GPIO 6 is I2C SDA; does not work as IRQ
-#GPIO 7 is I2C SCL; does not work as IRQ
-#GPIO 8 is a strapping pin; does not work as IRQ
-#GPIO 9 is Status LED
-#GPIO 10 does not work as IRQ
-#GPIO 11 does not work as IRQ
-#GPIO 12 is reserved for SPI (SPIHD) when I tried flashing
-#GPIO 13 is reserved for SPI (SPIWP) when I tried flashing
-#GPIO 14 is reserved for SPI (SPICS0) when I tried flashing
-#GPIO 15 is reserved for SPI (CLK) when I tried flashing
-#GPIO 16 is reserved for SPI (SPID) when I tried flashing
-#GPIO 17 is reserved for SPI (SPIQ) when I tried flashing
-#GPIO 18 does not work as IRQ
-#GPIO 19 does not work as IRQ
-#GPIO 20 does not work as IRQ
-#GPIO 21 does not work as IRQ
-
-# -----
-# Actual GPIOs:
-#   GPIO0 - dry-contact relay (normally open)
-#   GPIO1 - Pushbutton
-#   GPIO3 - ADC for NTC temperature probe
-#   GPIO6 - I2C SCL
-#   GPIO7 - I2C SDA
-#   GPIO9 - status LED active-low, boot-mode strapping pin (pin 2 of 7-pin header)
-#   GPIO18 - pin 7 of 7-pin header
-
-# I2C devices:
-#  0x38 - ADE7953 Power Sensor
-#  0x51 - AiP8563 Time Source (battery-backed RTC)
-
-# Outputting LOW on GPIO5 seems to produce HIGH on GPIO4, and vice versa
-
-#external_components:
-#  - source: github://dlitz/esphome@fix-ade7953-bvgain
-#    components: [ade7953_i2c, ade7953_base]
-#    #refresh: 1h
-#    refresh: always
-
-external_components:
-  - source: github://pr#12180
-    components: [ade7953_base]
-    refresh: 1h
 
 esphome:
   name: "${name}"
@@ -82,7 +47,7 @@ esphome:
   project:
     name: "${project_name}"
     version: "${project_version}"
-  #min_version: "2025.11.3"
+  min_version: 2025.11.3    # for ade7953 bugfix #12180
   on_boot:
     - lambda: |-
         const std::string new_ota_password = "${ota_new_password}";
@@ -96,7 +61,6 @@ esp32:
   framework:
     type: esp-idf
     sdkconfig_options:
-      COMPILER_OPTIMIZATION_SIZE: "y"
       CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
       CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
 
@@ -142,19 +106,20 @@ esp32_ble_tracker:
 bluetooth_proxy:
   active: false
 
+time:
+  - platform: homeassistant
+    id: current_time
+
 light:
   - platform: status_led
     name: "Status LED"
     id: status_led_id
     disabled_by_default: true
-    entity_category: config
+    entity_category: diagnostic
     pin:
       number: GPIO9
       inverted: true
       ignore_strapping_warning: true
-
-time:
-  - platform: homeassistant
 
 button:
   - platform: restart
@@ -167,7 +132,7 @@ button:
 
   - platform: factory_reset
     id: button_factory_reset
-    name: Factory reset
+    name: Factory Reset
     disabled_by_default: true
 
 binary_sensor:
@@ -182,8 +147,7 @@ binary_sensor:
         input: true
         pullup: true
     filters:
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+      - settle: 10ms
     on_multi_click:
       - timing:
         - ON for 5s to 10s
@@ -206,15 +170,6 @@ binary_sensor:
         input: true
         pullup: true
 
-  #- { platform: gpio, name: "GPIO4", pin: GPIO4 }
-  #- { platform: gpio, name: "GPIO5", pin: GPIO5 }
-  #- { platform: gpio, name: "GPIO8", pin: GPIO8 }
-  #- { platform: gpio, name: "GPIO10", pin: GPIO10 }
-  #- { platform: gpio, name: "GPIO11", pin: GPIO11 }
-  #- { platform: gpio, name: "GPIO19", pin: GPIO19 }
-  #- { platform: gpio, name: "GPIO20", pin: GPIO20 }
-  #- { platform: gpio, name: "GPIO21", pin: GPIO21 }
-
 switch:
   # Dry-contact relay - normally open
   - platform: gpio
@@ -234,11 +189,13 @@ sensor:
     name: Uptime
 
   - platform: internal_temperature
-    name: "ESP32 Internal Temperature"
+    id: cpu_temperature
+    name: "CPU Temperature"
 
   - platform: ntc
-    name: "Temperature"
-    entity_category: diagnostic
+    id: ntc_temperature
+    name: "NTC Temperature"
+    # entity_category: diagnostic
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     icon: "mdi:thermometer"
@@ -263,7 +220,6 @@ sensor:
     update_interval: "${update_interval}"
     use_accumulated_energy_registers: true
 
-    # Calibrated on device E4:B0:63:D4:3E:00
     voltage_gain: ${calibration_voltage_gain}
     current_gain_a: ${calibration_current_gain_a}
     current_gain_b: ${calibration_current_gain_b}
@@ -277,37 +233,43 @@ sensor:
     current_b:
       id: current_a
       name: Current A
+      accuracy_decimals: 3
     current_a:
       id: current_b
       name: Current B
+      accuracy_decimals: 3
     power_factor_b:
       id: power_factor_a
-      name: "Power factor A"
+      name: "Power Factor A"
+      filters:
+        - multiply: -1
     power_factor_a:
       id: power_factor_b
-      name: "Power factor B"
+      name: "Power Factor B"
+      filters:
+        - multiply: -1
     apparent_power_b:
       id: apparent_power_a
-      name: "Apparent power A"
+      name: "Apparent Power A"
     apparent_power_a:
       id: apparent_power_b
-      name: "Apparent power B"
+      name: "Apparent Power B"
     active_power_b:
       id: active_power_a
       name: "Power A"
-      filters:
-        - multiply: -1
     active_power_a:
       id: active_power_b
       name: "Power B"
-      filters:
-        - multiply: -1
     reactive_power_b:
       id: reactive_power_a
-      name: "Reactive power A"
+      name: "Reactive Power A"
+      filters:
+        - multiply: -1
     reactive_power_a:
       id: reactive_power_b
-      name: "Reactive power B"
+      name: "Reactive Power B"
+      filters:
+        - multiply: -1
 
   - platform: integration
     id: energy_a
@@ -339,9 +301,9 @@ sensor:
 
   - platform: total_daily_energy
     id: total_daily_energy_a
-    name: "Total daily energy A"
+    name: "Total Daily Energy A"
     power_id: active_power_a
-    icon: mdi:meter-electric
+    icon: "mdi:hours-24"
     unit_of_measurement: "kWh"
     state_class: total_increasing
     device_class: energy
@@ -351,9 +313,9 @@ sensor:
 
   - platform: total_daily_energy
     id: total_daily_energy_b
-    name: "Total daily energy B"
+    name: "Total Daily Energy B"
     power_id: active_power_b
-    icon: mdi:meter-electric
+    icon: "mdi:hours-24"
     unit_of_measurement: "kWh"
     state_class: total_increasing
     device_class: energy
@@ -361,11 +323,37 @@ sensor:
     filters:
       - multiply: 0.001
 
+  - platform: combination
+    type: sum
+    name: "Power A+B"
+    sources:
+      - source: active_power_a
+      - source: active_power_b
+    device_class: power
+    state_class: measurement
+
+  - platform: combination
+    type: sum
+    name: "Energy A+B"
+    sources:
+      - source: energy_a
+      - source: energy_b
+    state_class: total_increasing
+    accuracy_decimals: 3
+
+  - platform: combination
+    type: sum
+    name: "Total Daily Energy A+B"
+    sources:
+      - source: total_daily_energy_a
+      - source: total_daily_energy_b
+    state_class: total_increasing
+    accuracy_decimals: 3
+
   - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
     name: "WiFi Signal dB"
     id: wifi_signal_db
     update_interval: 60s
-    entity_category: diagnostic
 
   - platform: copy # Reports the WiFi signal strength in %
     id: wifi_signal_percent
@@ -377,7 +365,6 @@ sensor:
     entity_category: diagnostic
     device_class: ""
 
-
 text_sensor:
   - platform: wifi_info
     ssid:
@@ -386,9 +373,3 @@ text_sensor:
       name: ESP Connected BSSID
     mac_address:
       name: ESP Mac Wifi Address
-    scan_results:
-      name: ESP Latest Scan Results
-      disabled_by_default: true
-    dns_address:
-      name: ESP DNS Address
-
