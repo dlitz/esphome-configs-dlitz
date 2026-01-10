@@ -1,8 +1,4 @@
 substitutions:
-  name: "huacaoe-tywb-4ch-white"
-  friendly_name: "Huacaoe 4-Channel Relay"
-  room: ""
-  device_description: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch port)"
   ota_password: !secret ota_fallback_password
   ota_new_password: ""
   ota_update_password: 0
@@ -17,10 +13,9 @@ packages:
   factoryreset: !include common/factoryreset.yaml
 
 esphome:
-  name: "${name}"
-  friendly_name: "${friendly_name}"
-  area: "${room}"
-  comment: "${device_description}"
+  name: "huacaoe-tywb-4ch-white"
+  friendly_name: "Huacaoe 4-Channel Relay"
+  comment: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch port)"
   name_add_mac_suffix: true
   project:
     name: "dlitz.huacaoe-tywb-4ch-white"
