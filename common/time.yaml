@@ -1,0 +1,18 @@
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+  - platform: sntp
+    id: sntp_time
+
+sensor:
+  - platform: uptime
+    id: uptime_seconds
+    type: seconds
+    name: Uptime
+    disabled_by_default: true
+
+  - platform: uptime
+    id: uptime_timestamp
+    type: timestamp
+    name: Last Reboot
