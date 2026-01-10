@@ -2,7 +2,7 @@ substitutions:
   name: "huacaoe-tywb-4ch-white"
   friendly_name: "Huacaoe 4-Channel Relay"
   room: ""
-  device_description: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch portx)"
+  device_description: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch port)"
   ota_password: ""
   ota_new_password: ""
   _use_new_ota_password: "${ota_new_password and 1 or 0}"   # do not edit
@@ -384,8 +384,6 @@ binary_sensor:
         then:
           - logger.log: "Button held for over 10s: Factory reset"
           - button.press: button_factory_reset
-
-  - !remove button_3  # DEBUG FIXME
 
 switch:
   - platform: gpio
