@@ -7,6 +7,7 @@ substitutions:
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/huacaoe-tywb-4ch-white.yaml@wip
+  import_full_config: true
 
 packages:
   time: !include common/time.yaml
