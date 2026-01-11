@@ -7,8 +7,8 @@ dashboard_import:
   # import_full_config: true
 
 packages:
-  dlitz.common.libretiny-mdns-fix: !include common/libretiny-mdns-fix.yaml
-  # dlitz.common.ota-update-password: !include common/ota-update-password.yaml
+  - !include common/bk72xx-mdns-fix.yaml
+  # - !include common/ota-update-password.yaml
 
 esphome:
   name: huacaoe-tywb-4ch-grey

@@ -35,7 +35,7 @@ dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
 
 packages:
-  # ota-update-password: !include common/ota-update-password.yaml
+  # - !include common/ota-update-password.yaml
 
 esphome:
   name: "${name}"

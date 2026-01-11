@@ -1,5 +1,5 @@
 packages:
-  libretiny-mdns-fix: !include libretiny-mdns-fix.yaml
+  - !include libretiny-mdns-fix.yaml
 
 bk72xx:
   framework:
