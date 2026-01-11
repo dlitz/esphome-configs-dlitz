@@ -1,0 +1,24 @@
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: status_led_id
+    disabled_by_default: true
+    entity_category: diagnostic
+    pin:
+      number: "${tuya_config.netled1_pin}"
+      inverted: ${not(tuya_config.netled1_lv | int)}
+    effects:
+      - strobe:
+          name: Blink
+          colors:
+            - state: true
+              duration: 250ms
+            - state: false
+              duration: 250ms
+      - strobe:
+          name: Fast Blink
+          colors:
+            - state: true
+              duration: 50ms
+            - state: false
+              duration: 50ms
