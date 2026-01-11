@@ -1,9 +1,0 @@
-# Enable Home Assistant API with dynamic key
-api:
-  encryption:
-
-binary_sensor:
-  - platform: status
-    name: "Status"
-    id: status_sensor
-    entity_category: diagnostic
