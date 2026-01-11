@@ -11,7 +11,7 @@ external_components:
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/huacaoe-tywb-4ch-white.yaml@wip
-  import_full_config: true
+  # import_full_config: true
 
 packages:
   default: !include common/default.yaml
