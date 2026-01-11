@@ -26,7 +26,6 @@ substitutions:
   project_name: "dlitz.shelly-em-gen3"
   project_version: "v0.0.0"
   sensor_update_interval: "10s"
-  wifi_fast_connect: "false"
   update_interval: 5s
   calibration_voltage_gain: 0x32c78f    # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_a: 0x490bb5  # Calibrated on device E4:B0:63:D4:3E:00
@@ -74,7 +73,6 @@ ota:
     password: !secret fallback_ota_password
 
 wifi:
-  fast_connect: "${wifi_fast_connect}"
   enable_btm: true
   enable_rrm: true
 
@@ -214,6 +212,7 @@ sensor:
 
   # Note that on the Shelly EM Gen3, channels "A" and "B" are swapped between the chipset and the labels on the device.
   - platform: ade7953_i2c
+    id: ade7953_i2c
     #irq_pin: GPIO1      # TODO - what value goes here?
     update_interval: "${update_interval}"
     use_accumulated_energy_registers: true
