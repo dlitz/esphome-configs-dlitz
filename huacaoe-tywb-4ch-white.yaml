@@ -97,7 +97,7 @@ api:
 ota:
   - platform: esphome
     id: ota_id
-    password: "${ota_password}"
+    password: "${ota_password or ota_new_password}"
 
 wifi:
   # Enable fallback hotspot (captive portal) in case wifi connection fails
@@ -321,7 +321,7 @@ binary_sensor:
         pullup: true
     filters:
       - settle: 10ms
-    name: "Reset/Toggle All Button"
+    name: "Reset, Toggle All Button"
     on_multi_click:
       # FIXME: status_led effects get overridden when app is in a warning or error state
       - timing:
