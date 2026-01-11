@@ -11,6 +11,7 @@ dashboard_import:
   # import_full_config: true
 
 packages:
+  libretiny-mdns-fix: !include common/libretiny-mdns-fix.yaml
   # ota-update-password: !include common/ota-update-password.yaml
 
 esphome:
@@ -24,8 +25,6 @@ esphome:
     version: "v0.0.0"
   platformio_options:
     upload_speed: 2_000_000
-    platform_packages:
-      - "library-lwip @ https://github.com/dlitz/lwip.git#mdns-big-txt_bdk"
   includes:
     - "<lwip/apps/mdns_priv.h>" # for struct mdns_service, struct mdns_txtdata
     - "<lwip/init.h>"           # for LWIP_VERSION_STRING
@@ -44,7 +43,7 @@ bk72xx:
     options:
       # LT_LOG_HEAP: 1
       LT_AUTO_DOWNLOAD_REBOOT: 1  # this only works when the RXD1 GPIO is configured as a serial port
-      MDNS_TXT_RDATA_SIZE: 384    # https://github.com/esphome/esphome/issues/11281
+      # MDNS_TXT_RDATA_SIZE: 384    # https://github.com/esphome/esphome/issues/11281
       LWIP_DHCP_DOES_ACD_CHECK: 0 # https://github.com/libretiny-eu/libretiny/issues/316
 
     # version: "1.9.2"

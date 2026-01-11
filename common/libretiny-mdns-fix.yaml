@@ -1,0 +1,4 @@
+esphome:
+  platformio_options:
+    platform_packages:
+      - "library-lwip @ https://github.com/dlitz/lwip.git#mdns-big-txt_bdk"
