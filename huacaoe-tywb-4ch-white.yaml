@@ -78,8 +78,7 @@ external_components:
     refresh: always
 
 preferences:
-  # flash_write_interval: 300s
-  flash_write_interval: 3600s
+  flash_write_interval: 300s
 
 factory_reset:
   resets_required: 10
