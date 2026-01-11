@@ -1,4 +1,8 @@
 substitutions:
+  name: "huacaoe-tywb-4ch-white"
+  friendly_name: "Huacaoe 4-Channel Relayx"
+  room: "South office"
+  device_description: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch port)"
   ota_password: !secret fallback_ota_password
   ota_new_password: "secret"
   ota_update_password: 1
@@ -10,10 +14,10 @@ dashboard_import:
   # import_full_config: true
 
 esphome:
-  name: "huacaoe-tywb-4ch-white"
-  friendly_name: "Huacaoe 4-Channel Relay"
-  area: "South office"
-  comment: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch port)"
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${room}"
+  comment: "${device_description}"
   name_add_mac_suffix: true
   project:
     name: "dlitz.huacaoe-tywb-4ch-white"
