@@ -25,6 +25,10 @@ substitutions:
   shelly_header_gpio_number: GPIO19
   shelly_ntc_temperature_pin: GPIO32
   calibration_relay_adc_multiplier: 0.96184045  # Calibrated on device 88:13:bf:a1:be:b4
+  name: shelly-plus-1pm-ul
+  friendly_name: "${device_name}"
+  room: ""
+  device_description: "Shelly Plus 1PM UL - UL-certified small form factor smart switch with power measurement"
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-plus-1pm-ul.yaml@wip
@@ -45,9 +49,10 @@ packages:
   - !include common/wifi-info.yaml
 
 esphome:
-  name: shelly-plus-1pm-ul
-  friendly_name: "${device_name}"
-  comment: "Shelly Plus 1PM UL - UL-certified small form factor smart switch with power measurement"
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${room}"
+  comment: "${device_description}"
   name_add_mac_suffix: true
   project:
     name: "dlitz.shelly-plus-1pm-ul"
