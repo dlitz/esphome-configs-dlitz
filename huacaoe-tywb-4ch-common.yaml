@@ -6,7 +6,7 @@ substitutions:
     - button.press: button_toggle_all
 
   # Setting this to true allows LT_AUTO_DOWNLOAD_REBOOT to work, but disables the K3 button.
-  debug_remove_button_k3: false  # for LT_AUTO_DOWNLOAD_REBOOT support
+  debug_remove_button_k3: false  # set true for LT_AUTO_DOWNLOAD_REBOOT support
 
 packages:
   # - !include common/bk72xx-mdns-debug.yaml
@@ -61,11 +61,6 @@ debug:
 # Enable Home Assistant API with dynamic key
 api:
   encryption:
-
-# ota:
-#   - platform: esphome
-#     id: ota_id
-#     password: !secret fallback_ota_password
 
 wifi:
   # Enable fallback hotspot (captive portal) in case wifi connection fails
