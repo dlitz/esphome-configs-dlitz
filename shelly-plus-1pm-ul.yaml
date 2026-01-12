@@ -154,7 +154,7 @@ sensor:
         then:
           - component.update: apparent_power
       # on_value_range:
-      #   - above: "10"
+      #   - above: "16"
       #     then:
       #       - switch.turn_off: "relay"
       #       - logger.log: "Over-current protection triggered!"
