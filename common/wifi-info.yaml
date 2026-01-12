@@ -24,10 +24,10 @@ text_sensor:
         name: Device IP Address 1
       address_2:
         name: Device IP Address 2
-      address_3:
-        name: Device IP Address 3
-      address_4:
-        name: Device IP Address 4
+      # address_3:
+      #   name: Device IP Address 3
+      # address_4:
+      #   name: Device IP Address 4
     ssid:
       name: Device Connected SSID
     bssid:
@@ -36,7 +36,7 @@ text_sensor:
       name: Device MAC Address
     # scan_results:
     #   name: Device Latest Scan Results
-    dns_address:
-      name: Device DNS Address
-    power_save_mode:
-      name: Device Wifi Power Save Mode
+    # dns_address:
+    #   name: Device DNS Address
+    # power_save_mode:
+    #   name: Device Wifi Power Save Mode
