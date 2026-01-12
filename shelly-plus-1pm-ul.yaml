@@ -94,8 +94,7 @@ wifi:
   ap:
     password: !secret fallback_ap_password
 
-web_server:   # DEBUG FIXME
-  port: 80
+# web_server:
 
 captive_portal:
 
