@@ -65,7 +65,7 @@ esp32:
   framework:
     type: esp-idf
     sdkconfig_options:
-      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
+      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support still isn't enabled by default in IDF 5.5.2
       CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
 
 # Enable logging
