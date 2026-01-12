@@ -24,9 +24,9 @@ substitutions:
   calibration_current_gain_b: 0x498c15  # Calibrated on device E4:B0:63:D4:3E:00
   device_name: "Shelly EM Gen3"
   dual_sensors: true
-  # shelly_button_gpio_number: GPIO1
+  shelly_button_gpio_number: GPIO1
   shelly_header_gpio_number: GPIO18
-  shelly_ntc_temperature_pin: GPIO32
+  shelly_ntc_temperature_pin: GPIO3
   update_interval: 5s
 
 dashboard_import:
