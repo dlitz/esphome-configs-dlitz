@@ -182,7 +182,7 @@ sensor:
 
   # Note that on the Shelly EM Gen3, channels "A" and "B" are swapped between the chipset and the labels on the device.
   - platform: ade7953_i2c
-    id: ade7953_i2c
+    id: ade7953_id
     #irq_pin: GPIO1      # TODO - what value goes here?
     update_interval: "${update_interval}"
     use_accumulated_energy_registers: true
