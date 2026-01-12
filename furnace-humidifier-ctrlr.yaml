@@ -19,6 +19,7 @@ packages:
 esphome:
   name: furnace-humidifier-ctrlr
   friendly_name: furnace-humidifier-ctrlr
+  # name_add_mac_suffix: false
 
 web_server:   # DEBUG FIXME
 
@@ -74,7 +75,6 @@ button:
 binary_sensor:
   - id: !extend toggle_all_button
     name: "Flush button"
-    #on_press: !remove
 
 switch:
   - platform: template
@@ -83,6 +83,9 @@ switch:
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
     entity_category: config
+
+  - id: !extend relay_1
+    internal: true
 
 valve:
   - platform: template

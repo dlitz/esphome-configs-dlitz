@@ -9,7 +9,7 @@ substitutions:
   debug_remove_button_k3: false  # for LT_AUTO_DOWNLOAD_REBOOT support
 
 packages:
-  - !include common/bk72xx-mdns-debug.yaml
+  # - !include common/bk72xx-mdns-debug.yaml
   - !include common/bk72xx-mdns-fix.yaml
   - !include common/cpu-temperature.yaml
   - !include common/factory-reset.yaml
@@ -130,7 +130,6 @@ binary_sensor:
   - platform: status
     name: "Status"
     id: status_sensor
-    entity_category: diagnostic
 
   - platform: gpio
     id: toggle_all_button
