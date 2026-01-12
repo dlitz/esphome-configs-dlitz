@@ -22,7 +22,11 @@ substitutions:
   calibration_voltage_gain: 0x32c78f    # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_a: 0x490bb5  # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_b: 0x498c15  # Calibrated on device E4:B0:63:D4:3E:00
+  device_name: "Shelly EM Gen3"
   dual_sensors: true
+  # shelly_button_gpio_number: GPIO1
+  shelly_header_gpio_number: GPIO18
+  shelly_ntc_temperature_pin: GPIO32
   update_interval: 5s
 
 dashboard_import:
@@ -32,10 +36,12 @@ packages:
   - !include common/esp-shelly-c38f.yaml
   - !include common/cpu-temperature.yaml
   - !include common/factory-reset.yaml
-  # - !include common/ota-update-password.yaml
+  - !include common/ota.yaml
+  - !include common/ota-update-password.yaml
   - !include common/restart.yaml
   - !include common/safe-mode.yaml
   - !include common/shelly-button.yaml
+  - !include common/shelly-header-gpio.yaml
   - !include common/shelly-ntc-temperature.yaml
   - !include common/time.yaml
   - !include common/uptime-info.yaml
@@ -54,15 +60,11 @@ esphome:
 # Enable logging
 logger:
   level: DEBUG
+  hardware_uart: uart0
 
 # Enable Home Assistant API with dynamic key
 api:
   encryption:
-
-ota:
-  - platform: esphome
-    id: ota_id
-    password: !secret fallback_ota_password
 
 wifi:
   enable_btm: true
@@ -101,19 +103,6 @@ light:
       number: GPIO9
       inverted: true
       ignore_strapping_warning: true
-
-binary_sensor:
-  - platform: gpio
-    id: gpio18_pin_id
-    name: "GPIO Pin"
-    entity_category: diagnostic
-    disabled_by_default: true
-    pin:
-      number: GPIO18
-      inverted: true
-      mode:
-        input: true
-        pullup: true
 
 switch:
   # Dry-contact relay - normally open

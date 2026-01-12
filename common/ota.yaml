@@ -1,0 +1,7 @@
+substitutions:
+  ota_password: !secret fallback_ota_password
+
+ota:
+  - platform: esphome
+    id: ota_id
+    password: "${ota_password}"

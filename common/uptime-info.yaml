@@ -10,5 +10,7 @@ sensor:
   - platform: uptime
     id: uptime_timestamp
     type: timestamp
-    name: Last Reboot
-
+    name: Last Boot
+    # FIXME: Fix the uptime component so that it can use any configured time
+    # source, rather than just the first one.
+    time_id: sntp_time

@@ -9,8 +9,11 @@ dashboard_import:
 packages:
   - !include common/bk72xx-mdns-debug.yaml
   - !include common/bk72xx-mdns-fix.yaml
+  - !include common/cpu-temperature.yaml
   - !include common/factory-reset.yaml
+  - !include common/ota.yaml
   # - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
   - !include common/safe-mode.yaml
   - !include common/time.yaml
   - !include common/uptime-info.yaml
@@ -46,9 +49,6 @@ external_components:
       ref: wip
     refresh: always
 
-preferences:
-  flash_write_interval: 300s
-
 # Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
 logger:
   level: DEBUG
@@ -60,11 +60,6 @@ debug:
 api:
   encryption:
 
-ota:
-  - platform: esphome
-    id: ota_id
-    password: !secret fallback_ota_password
-
 wifi:
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -75,16 +70,7 @@ captive_portal:
 network:
   enable_ipv6: true
 
-sensor:
-  - platform: internal_temperature
-    id: cpu_temperature
-    name: "CPU Temperature"
-
 button:
-  - platform: restart
-    id: button_restart
-    name: Restart
-
   - platform: template
     id: button_toggle_all
     name: Toggle All

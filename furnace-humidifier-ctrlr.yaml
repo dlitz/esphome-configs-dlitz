@@ -21,7 +21,7 @@ ota:
       - logger.log: "Ensuring valve is closed before performing OTA update"
 
 time:
-  - id: !extend homeassistant_time
+  - id: !extend homeassistant_time    # TODO: will this work with sntp_time if I assign it here?
     on_time:
       # Every 5 minutes
       - seconds: 0
