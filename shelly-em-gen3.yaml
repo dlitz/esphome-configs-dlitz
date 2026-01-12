@@ -14,7 +14,7 @@
 #
 # I2C devices:
 #  0x38 - ADE7953 Power Sensor
-#  0x51 - AiP8563 Time Source (battery-backed RTC)
+#  0x51 - AiP8563 Time Source (battery-backed RTC; note that the Shelly device doesn't have a battery)
 
 # Outputting LOW on GPIO5 seems to produce HIGH on GPIO4, and vice versa
 
