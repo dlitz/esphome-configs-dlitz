@@ -2,9 +2,10 @@
 substitutions:
   button_default_action: 
     - button.press: button_flush
+  debug_remove_button_k3: true  # for LT_AUTO_DOWNLOAD support
 
 dashboard_import:
-  package_import_url: github://dlitz/esphome-configs-dlitz/furnace-humidifier-controller.yaml@wip
+  package_import_url: github://dlitz/esphome-configs-dlitz/furnace-humidifier-ctrl.yaml@wip
   # import_full_config: true
 
 packages:

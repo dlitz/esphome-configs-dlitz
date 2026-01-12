@@ -4,6 +4,9 @@ substitutions:
   button_default_action: 
     - button.press: button_toggle_all
 
+  # Setting this to true allows LT_AUTO_DOWNLOAD to work, but disables the K3 button.
+  debug_remove_button_k3: false  # for LT_AUTO_DOWNLOAD support
+
 packages:
   - !include common/bk72xx-mdns-debug.yaml
   - !include common/bk72xx-mdns-fix.yaml
@@ -129,6 +132,48 @@ binary_sensor:
     entity_category: diagnostic
 
   - platform: gpio
+    id: toggle_all_button
+    pin:
+      number: "${tuya_config.total_bt_pin}"
+      inverted: ${not(tuya_config.total_bt_lv | int)}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    name: "Reset, Toggle All Button"
+    on_multi_click:
+      # FIXME: status_led effects get overridden when app is in a warning or error state
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 10ms
+        then: ${button_default_action}
+      - timing:
+          - ON for at least 2s
+        then:
+          - light.turn_on:
+              id: status_led_id
+              effect: Blink
+      - timing:
+          - ON for 2s to 10s
+          - OFF for at least 10ms
+        then:
+          - logger.log: "Button held for 2-10s: Restart"
+          - button.press: button_restart
+      - timing:
+          - ON for at least 10s
+        then:
+          - light.turn_on:
+              id: status_led_id
+              effect: Fast Blink
+      - timing:
+          - ON for at least 10s
+          - OFF for at least 10ms
+        then:
+          - logger.log: "Button held for over 10s: Factory reset"
+          - button.press: button_factory_reset
+
+  - platform: gpio
     name: "Button K1"
     id: button_k1
     pin:
@@ -192,49 +237,8 @@ binary_sensor:
         - switch.toggle: relay_4
         - logger.log: "Button K4 pressed: Toggle Relay 4"
 
-  - platform: gpio
-    id: toggle_all_button
-    pin:
-      number: "${tuya_config.total_bt_pin}"
-      inverted: ${not(tuya_config.total_bt_lv | int)}
-      mode:
-        input: true
-        pullup: true
-    filters:
-      - settle: 10ms
-    name: "Reset, Toggle All Button"
-    on_multi_click:
-      # FIXME: status_led effects get overridden when app is in a warning or error state
-      - timing:
-          - ON for at most 1s
-          - OFF for at least 10ms
-        then: ${button_default_action}
-      - timing:
-          - ON for at least 2s
-        then:
-          - light.turn_on:
-              id: status_led_id
-              effect: Blink
-      - timing:
-          - ON for 2s to 10s
-          - OFF for at least 10ms
-        then:
-          - logger.log: "Button held for 2-10s: Restart"
-          - button.press: button_restart
-      - timing:
-          - ON for at least 10s
-        then:
-          - light.turn_on:
-              id: status_led_id
-              effect: Fast Blink
-      - timing:
-          - ON for at least 10s
-          - OFF for at least 10ms
-        then:
-          - logger.log: "Button held for over 10s: Factory reset"
-          - button.press: button_factory_reset
-
-  - id: !remove button_k3    # DEBUG FIXME: for LT_AUTO_DOWNLOAD support
+  # This allows LT_AUTO_DOWNLOAD to work, but breaks the button.
+  - id: !remove ${ "button_k3" if debug_remove_button_k3 else ""}
 
 switch:
   - platform: gpio
