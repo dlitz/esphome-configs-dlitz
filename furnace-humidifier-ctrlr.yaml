@@ -1,0 +1,99 @@
+# MAC address: 38:2C:E5:D5:4D:F2
+substitutions:
+  button_default_action: 
+    - button.press: button_flush
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/furnace-humidifier-controller.yaml@wip
+  # import_full_config: true
+
+packages:
+  - !include huacaoe-tywb-4ch-grey.yaml
+
+esphome:
+  name: furnace-humidifier-ctrlr
+  friendly_name: furnace-humidifier-ctrlr
+
+ota:
+  - id: !extend ota_id
+    on_begin:
+      - valve.close: valve_1
+      - logger.log: "Ensuring valve is closed before performing OTA update"
+
+time:
+  - id: !extend homeassistant_time
+    on_time:
+      # Every 5 minutes
+      - seconds: 0
+        minutes: /5
+        then:
+          - button.press: button_auto_flush
+
+button:
+  - platform: template
+    id: button_auto_flush
+    name: Auto flush
+    on_press:
+      - logger.log: "Auto-flush requested."
+      - if:
+          condition:
+            switch.is_on: auto_flush_enabled
+          then:
+            - logger.log: "Auto-flush enabled; flushing."
+            - button.press: button_flush
+          else:
+            - logger.log: "Auto-flush disabled; not flushing."
+
+  - platform: template
+    id: button_flush
+    name: Flush
+    on_press:
+      - logger.log: "Flush: Opening valve_1"
+      - valve.open: valve_1
+      - logger.log:
+          format: "Flush: Delaying %f seconds"
+          args: [ "id(flushing_open_duration_id).state" ]
+      - delay: !lambda "return 1000 * id(flushing_open_duration_id).state;"
+      - logger.log: "Flush: Closing valve_1"
+      - valve.close: valve_1
+
+binary_sensor:
+  - id: !extend toggle_all_button
+    name: "Flush button"
+
+switch:
+  - platform: template
+    id: auto_flush_enabled
+    name: "Automatic flushing"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+
+valve:
+  - platform: template
+    name: "Humidifier drain valve"
+    id: valve_1
+    lambda: |-
+      if (id(relay_1).state) {
+        return VALVE_OPEN;
+      } else {
+        return VALVE_CLOSED;
+      }
+    open_action:
+      - switch.turn_on: relay_1
+    close_action:
+      - switch.turn_off: relay_1
+    stop_action:
+      - valve.close: valve_1
+
+number:
+  - platform: template
+    id: flushing_open_duration_id
+    name: "Flushing open duration"
+    entity_category: config
+    optimistic: true
+    min_value: 0
+    max_value: 300
+    step: 1
+    restore_value: True
+    initial_value: 60

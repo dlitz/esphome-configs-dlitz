@@ -1,0 +1,28 @@
+substitutions:
+  shelly_button_gpio_number: GPIO1
+  shelly_button_gpio_pin:
+    number: ${shelly_button_gpio_number}
+    mode:
+      input: true
+      pullup: true
+    inverted: true
+  shelly_button_default_action: 
+    - button.press: button_safe_mode
+  shelly_button_longpress_action: 
+    - button.press: button_factory_reset
+
+binary_sensor:
+  - platform: gpio
+    id: shelly_button_id
+    name: "Button"
+    entity_category: diagnostic
+    pin: ${shelly_button_gpio_pin}
+    filters:
+      - settle: 10ms
+    on_multi_click:
+      - timing:
+        - ON for 5s to 10s
+        then: ${shelly_button_default_action}
+      - timing:
+        - ON for at least 10s
+        then: ${shelly_button_longpress_action}

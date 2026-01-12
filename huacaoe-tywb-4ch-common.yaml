@@ -1,12 +1,16 @@
 substitutions:
   # Use BK7231GUIFlashTool to dump tuya_config.json and then paste the result here.
   # tuya_config: { ... }
+  button_default_action: 
+    - button.press: button_toggle_all
 
 packages:
   - !include common/bk72xx-mdns-debug.yaml
   - !include common/bk72xx-mdns-fix.yaml
+  - !include common/cpu-temperature.yaml
   - !include common/factory-reset.yaml
   # - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
   - !include common/safe-mode.yaml
   - !include common/time.yaml
   - !include common/uptime-info.yaml
@@ -71,16 +75,7 @@ captive_portal:
 network:
   enable_ipv6: true
 
-sensor:
-  - platform: internal_temperature
-    id: cpu_temperature
-    name: "CPU Temperature"
-
 button:
-  - platform: restart
-    id: button_restart
-    name: Restart
-
   - platform: template
     id: button_toggle_all
     name: Toggle All
@@ -215,9 +210,7 @@ binary_sensor:
       - timing:
           - ON for at most 1s
           - OFF for at least 10ms
-        then:
-          # - logger.log: "Button pressed momentarily: Toggle All"
-          - button.press: button_toggle_all
+        then: ${button_default_action}
       - timing:
           - ON for at least 2s
         then:

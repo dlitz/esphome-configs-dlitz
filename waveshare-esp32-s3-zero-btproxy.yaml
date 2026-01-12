@@ -21,6 +21,7 @@ dashboard_import:
 packages:
   - !include common/factory-reset.yaml
   # - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
   - !include common/safe-mode.yaml
   - !include common/time.yaml
   - !include common/uptime-info.yaml
@@ -92,12 +93,6 @@ network:
 #   major: 10159
 #   minor: ${ibeacon_minor_id}
 #   #measured_power: -51
-
-
-button:
-  - platform: restart
-    id: button_restart
-    name: Restart
 
 binary_sensor:
   - platform: gpio
