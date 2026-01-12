@@ -142,7 +142,7 @@ binary_sensor:
       - timing:
           - ON for at most 1s
           - OFF for at least 10ms
-        then: ${button_default_action or _button_default_action}
+        then: ${button_default_action or _button_default_action_internal}
       - timing:
           - ON for at least 2s
         then:
