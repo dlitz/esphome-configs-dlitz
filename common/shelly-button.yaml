@@ -6,9 +6,13 @@ substitutions:
       input: true
       pullup: true
     inverted: true
-  shelly_button_default_action: 
+  shelly_button_default_action: []
+  shelly_button_longpress_action: []
+  # Separate _internal substitutions so that assigning to the above replaces
+  # (rather than appends to) the default action.
+  _shelly_button_default_action_internal:
     - button.press: button_safe_mode
-  shelly_button_longpress_action: 
+  _shelly_button_longpress_action_internal:
     - button.press: button_factory_reset
 
 binary_sensor:
@@ -22,7 +26,7 @@ binary_sensor:
     on_multi_click:
       - timing:
         - ON for 5s to 10s
-        then: ${shelly_button_default_action}
+        then: ${shelly_button_default_action or _shelly_button_default_action_internal}
       - timing:
         - ON for at least 10s
-        then: ${shelly_button_longpress_action}
+        then: ${shelly_button_longpress_action or _shelly_button_longpress_action_internal}

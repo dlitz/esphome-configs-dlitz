@@ -1,11 +1,12 @@
 substitutions:
   # Use BK7231GUIFlashTool to dump tuya_config.json and then paste the result here.
   # tuya_config: { ... }
-  button_default_action: 
+  button_default_action: []
+  _button_default_action_internal:
     - button.press: button_toggle_all
 
-  # Setting this to true allows LT_AUTO_DOWNLOAD to work, but disables the K3 button.
-  debug_remove_button_k3: false  # for LT_AUTO_DOWNLOAD support
+  # Setting this to true allows LT_AUTO_DOWNLOAD_REBOOT to work, but disables the K3 button.
+  debug_remove_button_k3: false  # for LT_AUTO_DOWNLOAD_REBOOT support
 
 packages:
   - !include common/bk72xx-mdns-debug.yaml
@@ -147,7 +148,7 @@ binary_sensor:
       - timing:
           - ON for at most 1s
           - OFF for at least 10ms
-        then: ${button_default_action}
+        then: ${button_default_action or _button_default_action}
       - timing:
           - ON for at least 2s
         then:
@@ -237,7 +238,7 @@ binary_sensor:
         - switch.toggle: relay_4
         - logger.log: "Button K4 pressed: Toggle Relay 4"
 
-  # This allows LT_AUTO_DOWNLOAD to work, but breaks the button.
+  # This allows LT_AUTO_DOWNLOAD_REBOOT to work, but breaks the button.
   - id: !remove ${ "button_k3" if debug_remove_button_k3 else ""}
 
 switch:
