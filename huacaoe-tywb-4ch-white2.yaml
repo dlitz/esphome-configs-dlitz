@@ -13,7 +13,7 @@ packages:
       tuya_config: ${my_tuya_config}
 
 esphome:
-  name: "huacaoe-tywb-4ch-white2"
+  name: "huacaoe-tywb-4ch-white"
   friendly_name: "Huacaoe 4-Channel Relay"
   comment: "Huacaoe TYWB 4ch-RF 4-channel relay (white, 7-32V power, no external switch port)"
   project:

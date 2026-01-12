@@ -1,0 +1,13 @@
+factory_reset:
+  resets_required: 10
+  max_delay: 10s
+  on_increment:
+    - logger.log:
+        format: "(factory_reset) Fast power cycle count now %u, target %u"
+        args: [x, target]
+
+button:
+  - platform: factory_reset
+    id: button_factory_reset
+    name: Factory reset
+    disabled_by_default: true

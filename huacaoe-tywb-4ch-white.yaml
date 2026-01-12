@@ -7,8 +7,14 @@ dashboard_import:
   # import_full_config: true
 
 packages:
+  - !include common/bk72xx-mdns-debug.yaml
   - !include common/bk72xx-mdns-fix.yaml
+  - !include common/factory-reset.yaml
   # - !include common/ota-update-password.yaml
+  - !include common/safe-mode.yaml
+  - !include common/time.yaml
+  - !include common/uptime-info.yaml
+  - !include common/wifi-info.yaml
 
 esphome:
   name: "huacaoe-tywb-4ch-white"
@@ -20,18 +26,10 @@ esphome:
     version: "v0.0.0"
   platformio_options:
     upload_speed: 2_000_000
-  includes:
-    - "<lwip/apps/mdns_priv.h>" # for struct mdns_service, struct mdns_txtdata
-    - "<lwip/init.h>"           # for LWIP_VERSION_STRING
 
 bk72xx:
   board: cb3s   # Flash size: 2MiB, CPU Frequency: 120MHz
   framework:  # LibreTiny
-    loglevel: debug
-    debug:
-      - mdns
-      - lwip
-    sdk_silent: auto
     options:
       # LT_LOG_HEAP: 1
       LT_AUTO_DOWNLOAD_REBOOT: 1  # this only works when the RXD1 GPIO is configured as a serial port
@@ -50,14 +48,6 @@ external_components:
 
 preferences:
   flash_write_interval: 300s
-
-factory_reset:
-  resets_required: 10
-  max_delay: 10s
-  on_increment:
-    - logger.log:
-        format: "(factory_reset) Fast power cycle count now %u, target %u"
-        args: [x, target]
 
 # Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
 logger:
@@ -85,86 +75,15 @@ captive_portal:
 network:
   enable_ipv6: true
 
-safe_mode:
-  reboot_timeout: 10min
-
-time:
-  - platform: homeassistant
-    id: homeassistant_time
-
-  - platform: sntp
-    id: sntp_time
-
 sensor:
-  - platform: uptime
-    id: uptime_seconds
-    type: seconds
-    name: Uptime
-    disabled_by_default: true
-
-  - platform: uptime
-    id: uptime_timestamp
-    type: timestamp
-    name: Last Reboot
-
   - platform: internal_temperature
     id: cpu_temperature
     name: "CPU Temperature"
-
-  - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
-    name: "WiFi Signal dB"
-    id: wifi_signal_db
-    update_interval: 60s
-
-  - platform: copy # Reports the WiFi signal strength in %
-    source_id: wifi_signal_db
-    name: "WiFi Signal Percent"
-    filters:
-      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
-    unit_of_measurement: "Signal %"
-    entity_category: diagnostic
-    device_class: ""
-
-  - platform: template
-    name: "MDNS_TXT_RDATA_SIZE"
-    accuracy_decimals: 0
-    entity_category: diagnostic
-    lambda: |-
-      #ifdef MDNS_TXT_RDATA_SIZE
-      return MDNS_TXT_RDATA_SIZE;
-      #else
-      return {};
-      #endif
-
-  - platform: template
-    name: "size of mdns_service.txtdata"
-    accuracy_decimals: 0
-    entity_category: diagnostic
-    lambda: |-
-      struct mdns_service srv;
-      return sizeof(srv.txtdata);
-
-  - platform: template
-    name: "size of mdns_txtdata.rdata"
-    accuracy_decimals: 0
-    entity_category: diagnostic
-    lambda: |-
-      struct mdns_txtdata txt;
-      return sizeof(txt.rdata);
 
 button:
   - platform: restart
     id: button_restart
     name: Restart
-
-  - platform: safe_mode
-    id: button_safe_mode
-    name: Safe Mode Boot
-
-  - platform: factory_reset
-    id: button_factory_reset
-    name: Factory reset
-    disabled_by_default: true
 
   - platform: template
     id: button_toggle_all
@@ -188,44 +107,6 @@ button:
             - switch.turn_on: relay_3
             - switch.turn_on: relay_4
             - logger.log: "Toggle All button pressed: Turned all on"
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: Device IP Address
-      address_0:
-        name: Device IP Address 0
-      address_1:
-        name: Device IP Address 1
-      address_2:
-        name: Device IP Address 2
-      address_3:
-        name: Device IP Address 3
-      address_4:
-        name: Device IP Address 4
-    ssid:
-      name: Device Connected SSID
-    bssid:
-      name: Device Connected BSSID
-    mac_address:
-      name: Device MAC Address
-    # scan_results:
-    #   name: Device Latest Scan Results
-    dns_address:
-      name: Device DNS Address
-    power_save_mode:
-      name: Device Wifi Power Save Mode
-
-  - platform: libretiny
-    version:
-      name: LibreTiny Version
-
-  - platform: template
-    name: "LWIP_VERSION_STRING"
-    entity_category: diagnostic
-    lambda: |-
-      static const std::string s = LWIP_VERSION_STRING;
-      return s;
 
 light:
   - platform: status_led

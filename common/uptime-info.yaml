@@ -1,0 +1,14 @@
+# Requires time.yaml
+
+sensor:
+  - platform: uptime
+    id: uptime_seconds
+    type: seconds
+    name: Uptime
+    disabled_by_default: true
+
+  - platform: uptime
+    id: uptime_timestamp
+    type: timestamp
+    name: Last Reboot
+
