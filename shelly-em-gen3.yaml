@@ -19,10 +19,11 @@
 # Outputting LOW on GPIO5 seems to produce HIGH on GPIO4, and vice versa
 
 substitutions:
-  update_interval: 5s
   calibration_voltage_gain: 0x32c78f    # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_a: 0x490bb5  # Calibrated on device E4:B0:63:D4:3E:00
   calibration_current_gain_b: 0x498c15  # Calibrated on device E4:B0:63:D4:3E:00
+  dual_sensors: true
+  update_interval: 5s
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@wip
@@ -50,20 +51,9 @@ esphome:
     version: "v0.0.0"
   min_version: 2025.11.3    # for ade7953 bugfix #12180
 
-esp32:
-  variant: esp32c3
-  flash_size: 8MB
-  framework:
-    type: esp-idf
-    sdkconfig_options:
-      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support isn't enabled by default in IDF 5.4.2
-      CONFIG_MBEDTLS_DEFAULT_CERTIFICATE_BUNDLE: CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_CMN
-      # CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi
-
 # Enable logging
 logger:
   level: DEBUG
-  hardware_uart: uart0
 
 # Enable Home Assistant API with dynamic key
 api:
@@ -94,12 +84,12 @@ i2c:
   sda: GPIO7
   scan: true
 
-esp32_ble_tracker:
-  scan_parameters:
-    active: false
-
-bluetooth_proxy:
-  active: false
+# esp32_ble_tracker:
+#   scan_parameters:
+#     active: false
+#
+# bluetooth_proxy:
+#   active: false
 
 light:
   - platform: status_led
@@ -134,9 +124,9 @@ switch:
 
 sensor:
   # Note that on the Shelly EM Gen3, channels "A" and "B" are swapped between the chipset and the labels on the device.
+  # Also, I think this device does not need/have an irq_pin.
   - platform: ade7953_i2c
     id: ade7953_id
-    #irq_pin: GPIO1      # TODO - what value goes here?
     update_interval: ${update_interval}
     use_accumulated_energy_registers: true
 
@@ -158,6 +148,7 @@ sensor:
       id: current_b
       name: Current B
       accuracy_decimals: 3
+      disabled_by_default: ${ not dual_sensors }
     power_factor_b:
       id: power_factor_a
       name: "Power Factor A"
@@ -168,18 +159,21 @@ sensor:
       name: "Power Factor B"
       filters:
         - multiply: -1
+      disabled_by_default: ${ not dual_sensors }
     apparent_power_b:
       id: apparent_power_a
       name: "Apparent Power A"
     apparent_power_a:
       id: apparent_power_b
       name: "Apparent Power B"
+      disabled_by_default: ${ not dual_sensors }
     active_power_b:
       id: active_power_a
       name: "Power A"
     active_power_a:
       id: active_power_b
       name: "Power B"
+      disabled_by_default: ${ not dual_sensors }
     reactive_power_b:
       id: reactive_power_a
       name: "Reactive Power A"
@@ -190,6 +184,7 @@ sensor:
       name: "Reactive Power B"
       filters:
         - multiply: -1
+      disabled_by_default: ${ not dual_sensors }
 
   - platform: integration
     id: energy_a
@@ -218,6 +213,7 @@ sensor:
     accuracy_decimals: 3
     filters:
       - multiply: 0.001
+    disabled_by_default: ${ not dual_sensors }
 
   - platform: total_daily_energy
     id: total_daily_energy_a
@@ -242,8 +238,10 @@ sensor:
     accuracy_decimals: 3
     filters:
       - multiply: 0.001
+    disabled_by_default: ${ not dual_sensors }
 
   - platform: combination
+    id: power_ab
     type: sum
     name: "Power A+B"
     sources:
@@ -251,8 +249,10 @@ sensor:
       - source: active_power_b
     device_class: power
     state_class: measurement
+    disabled_by_default: ${ not dual_sensors }
 
   - platform: combination
+    id: energy_ab
     type: sum
     name: "Energy A+B"
     sources:
@@ -260,8 +260,10 @@ sensor:
       - source: energy_b
     state_class: total_increasing
     accuracy_decimals: 3
+    disabled_by_default: ${ not dual_sensors }
 
   - platform: combination
+    id: total_daily_energy_ab
     type: sum
     name: "Total Daily Energy A+B"
     sources:
@@ -269,3 +271,4 @@ sensor:
       - source: total_daily_energy_b
     state_class: total_increasing
     accuracy_decimals: 3
+    disabled_by_default: ${ not dual_sensors }

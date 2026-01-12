@@ -3,9 +3,9 @@
 
 substitutions:
   # calibration_voltage_reference: 15873.35944299     # esphome default
-  calibration_voltage_reference: 14393.902006359718   # calibrated on device 9f7c
+  calibration_voltage_reference: 14393.902006359718   # calibrated on device ec:da:3b:c4:9f:7c
   # calibration_current_reference: 251213.46469622    # esphome default
-  calibration_current_reference: 245340.94214487978   # calibrated on device 9f7c
+  calibration_current_reference: 245340.94214487978   # calibrated on device ec:da:3b:c4:9f:7c
   line_frequency: 60Hz
   update_interval: 5s
 
@@ -31,7 +31,7 @@ esphome:
   comment: "Shelly PM Mini Gen3 - Smart wifi energy meter"
   name_add_mac_suffix: true
   project:
-    name: "dlitz.shelly-em-gen3"
+    name: "dlitz.shelly-pm-mini-gen3"
     version: "v0.0.0"
   min_version: 2025.11.3    # for ade7953 bugfix #12180
 
@@ -62,12 +62,12 @@ network:
   enable_ipv6: true
   # min_ipv6_addr_count: 2
 
-esp32_ble_tracker:
-  scan_parameters:
-    active: false
+# esp32_ble_tracker:
+#   scan_parameters:
+#     active: false
 
-bluetooth_proxy:
-  active: false
+# bluetooth_proxy:
+#   active: false
 
 light:
   - platform: status_led
