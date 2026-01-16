@@ -10,7 +10,7 @@
 #   GPIO6 - I2C SCL
 #   GPIO7 - I2C SDA
 #   GPIO9 - Status LED (active low)
-#   GPIO18 - Pin 7 of 7-pin header
+#   GPIO18 - Pin 1 of 7-pin header
 #
 # I2C devices:
 #  0x38 - ADE7953 Power Sensor

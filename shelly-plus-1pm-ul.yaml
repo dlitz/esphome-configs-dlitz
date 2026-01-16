@@ -9,7 +9,7 @@
 #   GPIO0 - Status LED and programming strapping pin
 #   GPIO5 - BL0937 CF pin
 #   GPIO18 - BL0937 CF1 pin
-#   GPIO19 - Pin 7 of 7-pin header
+#   GPIO19 - Pin 1 of 7-pin header
 #   GPIO23 - BL0937 SEL pin
 #   GPIO25 - Pushbutton
 #   GPIO26 - Dry-contact relay (normally open)
