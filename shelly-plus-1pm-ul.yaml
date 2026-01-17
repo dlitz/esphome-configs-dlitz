@@ -36,7 +36,7 @@ dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-plus-1pm-ul.yaml@wip
 
 packages:
-  - !include common/esp32.yaml
+  - !include common/esp32-u4wdh.yaml
   - !include common/cpu-temperature.yaml
   - !include common/factory-reset.yaml
   - !include common/ota.yaml
@@ -66,15 +66,6 @@ esphome:
   project:
     name: "dlitz.shelly-plus-1pm-ul"
     version: "v0.0.0"
-
-esp32:
-  variant: esp32
-  flash_size: 4MB
-  # cpu_frequency: 240MHz
-  framework:
-    type: esp-idf
-    # advanced:
-    #   minimum_chip_revision: "3.1"    # Requires ESPHome 2026.1.0 ?
 
 logger:
   level: DEBUG
