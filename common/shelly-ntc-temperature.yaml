@@ -1,5 +1,5 @@
 substitutions:
-  shelly_ntc_temperature_pin: GPIO3
+  # shelly_ntc_temperature_pin: GPIO3
 
 sensor:
   - platform: ntc
