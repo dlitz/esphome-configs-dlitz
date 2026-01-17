@@ -1,5 +1,5 @@
 substitutions:
-  shelly_button_gpio_number: GPIO1
+  # shelly_button_gpio_number: GPIO1
   shelly_button_gpio_pin:
     number: ${shelly_button_gpio_number}
     mode:
@@ -25,8 +25,18 @@ binary_sensor:
       - settle: 10ms
     on_multi_click:
       - timing:
-        - ON for 5s to 10s
+          - ON for at least 5s
+        then:
+          - logger.log: "Button held for 5s"
+      - timing:
+          - ON for at least 10s
+        then:
+          - logger.log: "Button held for 10s"
+      - timing:
+          - ON for 5s to 10s
+          - OFF for at least 100ms
         then: ${shelly_button_default_action or _shelly_button_default_action_internal}
       - timing:
-        - ON for at least 10s
+          - ON for at least 10s
+          - OFF for at least 100ms
         then: ${shelly_button_longpress_action or _shelly_button_longpress_action_internal}
