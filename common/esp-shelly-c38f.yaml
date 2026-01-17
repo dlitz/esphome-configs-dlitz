@@ -9,6 +9,7 @@ esphome:
 
 esp32:
   variant: esp32c3
+  # cpu_frequency: 240MHz
   flash_size: 8MB
   framework:
     type: esp-idf

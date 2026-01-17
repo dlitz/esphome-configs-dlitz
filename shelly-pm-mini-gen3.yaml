@@ -1,5 +1,8 @@
 # MAC address: ec:da:3b:c4:9f:7c
 # Device: Shelly PM Mini Gen3
+# References:
+# - https://devices.esphome.io/devices/shelly-pm-mini-gen3/
+# - https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3
 
 substitutions:
   # calibration_voltage_reference: 15873.35944299     # esphome default

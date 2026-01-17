@@ -1,7 +1,9 @@
 # Shelly EM Gen3
 # PCB markings: "EM Gen3_v0.1.3", "B2519"
 # CPU: ESP32-Shelly (ESP32-C3)
-# Ref: https://community.home-assistant.io/t/shelly-em-gen3-solved/944171
+# References:
+# - https://community.home-assistant.io/t/shelly-em-gen3-solved/944171
+# - https://kb.shelly.cloud/knowledge-base/shelly-em-gen3
 #
 # GPIOs:
 #   GPIO0 - Dry-contact relay (normally open)

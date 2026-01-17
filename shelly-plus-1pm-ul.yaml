@@ -3,7 +3,9 @@
 # CPU: ESP32-U4WDH (revision v3.1)
 # Features: Wi-Fi, BT, Dual Core + LP Core, 240MHz, Embedded Flash, Vref calibration in eFuse, Coding Scheme None
 # Crystal frequency: 40MHz
-# Ref: https://devices.esphome.io/devices/shelly-plus-1pm/
+# References:
+# - https://devices.esphome.io/devices/shelly-plus-1pm/
+# - https://kb.shelly.cloud/knowledge-base/shelly-plus-1pm-ul
 #
 # GPIOs:
 #   GPIO0 - Status LED and programming strapping pin
@@ -68,6 +70,7 @@ esphome:
 esp32:
   variant: esp32
   flash_size: 4MB
+  # cpu_frequency: 240MHz
   framework:
     type: esp-idf
     # advanced:
