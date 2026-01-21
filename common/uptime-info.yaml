@@ -1,0 +1,16 @@
+# Requires time.yaml
+
+sensor:
+  - platform: uptime
+    id: uptime_seconds
+    type: seconds
+    name: Uptime
+    disabled_by_default: true
+
+  - platform: uptime
+    id: uptime_timestamp
+    type: timestamp
+    name: Last Boot
+    # FIXME: Fix the uptime component so that it can use any configured time
+    # source, rather than just the first one.
+    time_id: sntp_time

@@ -1,0 +1,204 @@
+# MAC address: ec:da:3b:c4:9f:7c
+# Device: Shelly PM Mini Gen3
+# References:
+# - https://devices.esphome.io/devices/shelly-pm-mini-gen3/
+# - https://kb.shelly.cloud/knowledge-base/shelly-pm-mini-gen3
+
+substitutions:
+  # calibration_voltage_reference: 15873.35944299     # esphome default
+  calibration_voltage_reference: 14393.902006359718   # calibrated on device ec:da:3b:c4:9f:7c
+  # calibration_current_reference: 251213.46469622    # esphome default
+  calibration_current_reference: 245340.94214487978   # calibrated on device ec:da:3b:c4:9f:7c
+  device_name: "Shelly PM Mini Gen3"
+  line_frequency: 60Hz
+  shelly_button_gpio_number: GPIO1
+  shelly_ntc_temperature_pin: GPIO3
+  update_interval: 5s
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/shelly-pm-mini-gen3.yaml@${git_branch}
+
+packages:
+  - !include common/esp-shelly-c38f.yaml    # TODO: Does this device have this SoC
+  - !include common/cpu-temperature.yaml
+  - !include common/factory-reset.yaml
+  - !include common/flash-write-interval.yaml
+  - !include common/git-branch.yaml
+  - !include common/ota.yaml
+  - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
+  - !include common/safe-mode.yaml
+  - !include common/shelly-button.yaml
+  - !include common/shelly-ntc-temperature.yaml
+  - !include common/time.yaml
+  - !include common/uptime-info.yaml
+  - !include common/wifi-info.yaml
+
+esphome:
+  name: "shelly-pm-mini-gen3"
+  friendly_name: "shelly-pm-mini-gen3"
+  comment: "Shelly PM Mini Gen3 - Smart wifi energy meter"
+  name_add_mac_suffix: true
+  project:
+    name: "dlitz.shelly-pm-mini-gen3"
+    version: "v0.0.0"
+  min_version: 2025.11.3    # for ade7953 bugfix #12180
+
+# Enable logging
+logger:
+  hardware_uart: uart0
+
+# Enable Home Assistant API
+api:
+  encryption:
+
+wifi:
+  # ssid: !secret wifi_ssid
+  # password: !secret wifi_password
+  # fast_connect: true
+  enable_btm: true
+  enable_rrm: true
+  min_auth_mode: WPA2
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+network:
+  enable_ipv6: true
+  # min_ipv6_addr_count: 2
+
+# esp32_ble_tracker:
+#   scan_parameters:
+#     active: false
+
+# bluetooth_proxy:
+#   active: false
+
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: status_led_id
+    disabled_by_default: true
+    entity_category: diagnostic
+    pin:
+      number: GPIO0
+      inverted: true
+
+sensor:
+  - platform: bl0942
+    id: bl0942_id
+    uart_id: uart_0
+    update_interval: ${update_interval}
+    voltage_reference: ${calibration_voltage_reference}
+    current_reference: ${calibration_current_reference}
+    line_frequency: ${line_frequency}
+
+    voltage:
+      name: "Voltage"
+      id: voltage
+      icon: mdi:alpha-v-circle-outline
+      device_class: voltage
+      on_value:
+        then:
+          - component.update: apparent_power
+    current:
+      name: "Current"
+      id: current
+      icon: mdi:alpha-a-circle-outline
+      device_class: current
+      on_value:
+        then:
+          - component.update: apparent_power
+    power:
+      name: "Power"
+      id: power
+      icon: mdi:transmission-tower
+      device_class: power
+      state_class: measurement
+      on_value:
+        then:
+          - component.update: power_factor
+    energy:
+      name: "Energy"
+      id: energy
+      icon: mdi:meter-electric
+      device_class: energy
+    frequency:
+      name: "Frequency"
+      id: line_frequency
+      accuracy_decimals: 2
+      icon: mdi:cosine-wave
+      device_class: frequency
+      state_class: measurement
+
+  - platform: total_daily_energy
+    id: daily_energy_consumed_id
+    name: "Daily Energy Consumed"
+    power_id: power
+    icon: mdi:hours-24
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: template
+    id: apparent_power
+    name: "Apparent Power"
+    state_class: measurement
+    device_class: apparent_power
+    unit_of_measurement: "VA"
+    update_interval: never
+    lambda: |-
+      return id(voltage).state * id(current).state;
+    on_value:
+      then:
+        - component.update: power_factor
+        - component.update: reactive_power
+
+  - platform: template
+    id: reactive_power
+    name: "Reactive Power"
+    state_class: measurement
+    device_class: reactive_power
+    unit_of_measurement: "var"
+    update_interval: never
+    lambda: |-
+      return id(apparent_power).state * (1 - id(power_factor).state);
+
+  - platform: template
+    id: power_factor
+    name: "Power Factor"
+    state_class: measurement
+    device_class: power_factor
+    update_interval: never
+    lambda: |-
+      float r = id(power).state;
+      float a = id(apparent_power).state;
+      if (r == 0.0 && a == 0.0) {
+        return 1.0;
+      }
+      return r / a;
+    on_value:
+      then:
+        - component.update: reactive_power
+
+uart:
+  - id: uart_0
+    tx_pin: GPIO6
+    rx_pin:
+      number: GPIO7
+      mode:
+        pullup: true
+        input: true
+    baud_rate: 9600
+    debug:
+      direction: BOTH
+      after:
+        delimiter: "\n"
+      sequence:
+        - lambda: UARTDebug::log_hex(direction, bytes, 32);

@@ -1,0 +1,42 @@
+sensor:
+  - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+
+  - platform: copy # Reports the WiFi signal strength in %
+    id: wifi_signal_percent
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: diagnostic
+    device_class: ""
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: Device IP Address
+      address_0:
+        name: Device IP Address 0
+      address_1:
+        name: Device IP Address 1
+      address_2:
+        name: Device IP Address 2
+      # address_3:
+      #   name: Device IP Address 3
+      # address_4:
+      #   name: Device IP Address 4
+    ssid:
+      name: Device Connected SSID
+    bssid:
+      name: Device Connected BSSID
+    mac_address:
+      name: Device MAC Address
+    # scan_results:
+    #   name: Device Latest Scan Results
+    # dns_address:
+    #   name: Device DNS Address
+    # power_save_mode:
+    #   name: Device Wifi Power Save Mode

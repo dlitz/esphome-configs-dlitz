@@ -1,0 +1,7 @@
+packages:
+  - !include libretiny-mdns-fix.yaml
+
+bk72xx:
+  framework:
+    options:
+      MDNS_TXT_RDATA_SIZE: 384    # https://github.com/esphome/esphome/issues/11281

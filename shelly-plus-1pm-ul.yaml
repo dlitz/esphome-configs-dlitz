@@ -1,0 +1,249 @@
+# Shelly Plus 1PM UL
+# PCB markings: "Shelly 1PM+_v0.2.2", "B2519"
+# CPU: ESP32-U4WDH (revision v3.1)
+# Features: Wi-Fi, BT, Dual Core + LP Core, 240MHz, Embedded Flash, Vref calibration in eFuse, Coding Scheme None
+# Crystal frequency: 40MHz
+# References:
+# - https://devices.esphome.io/devices/shelly-plus-1pm/
+# - https://kb.shelly.cloud/knowledge-base/shelly-plus-1pm-ul
+#
+# GPIOs:
+#   GPIO0 - Status LED and programming strapping pin
+#   GPIO5 - BL0937 CF pin
+#   GPIO18 - BL0937 CF1 pin
+#   GPIO19 - Pin 1 of 7-pin header
+#   GPIO23 - BL0937 SEL pin
+#   GPIO25 - Pushbutton
+#   GPIO26 - Dry-contact relay (normally open)
+#   GPIO32 - ADC for NTC temperature probe
+
+substitutions:
+  device_name: "Shelly Plus 1PM UL"
+  # Higher value gives lower watt readout
+  current_res: "0.001"
+  # Lower value gives lower voltage readout
+  voltage_div: "1925"
+  shelly_button_gpio_number: GPIO25
+  shelly_header_gpio_number: GPIO19
+  shelly_ntc_temperature_pin: GPIO32
+  calibration_relay_adc_multiplier: 0.96184045  # Calibrated on device 88:13:bf:a1:be:b4
+  name: shelly-plus-1pm-ul
+  friendly_name: "${device_name}"
+  room: ""
+  device_description: "Shelly Plus 1PM UL - UL-certified small form factor smart switch with power measurement"
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/shelly-plus-1pm-ul.yaml@${git_branch}
+
+packages:
+  - !include common/esp32-u4wdh.yaml
+  - !include common/cpu-temperature.yaml
+  - !include common/factory-reset.yaml
+  - !include common/flash-write-interval.yaml
+  - !include common/git-branch.yaml
+  - !include common/ota.yaml
+  - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
+  - !include common/safe-mode.yaml
+  - !include common/shelly-button.yaml
+  - !include common/shelly-header-gpio.yaml
+  - !include common/shelly-ntc-temperature.yaml
+  - !include common/time.yaml
+  - !include common/uptime-info.yaml
+  - !include common/wifi-info.yaml
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dlitz/esphome-configs-dlitz.git
+      ref: ${git_branch}
+    refresh: always
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  area: "${room}"
+  comment: "${device_description}"
+  name_add_mac_suffix: true
+  project:
+    name: "dlitz.shelly-plus-1pm-ul"
+    version: "v0.0.0"
+
+logger:
+  level: DEBUG
+  hardware_uart: uart0
+
+debug:
+
+api:
+  encryption:
+
+wifi:
+  # ssid: !secret wifi_ssid
+  # password: !secret wifi_password
+  # fast_connect: true
+  enable_btm: true
+  enable_rrm: true
+  min_auth_mode: WPA2
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret fallback_ap_password
+
+# web_server:
+
+captive_portal:
+
+output:
+  - platform: gpio
+    id: "relay_output"
+    pin: GPIO26
+
+switch:
+  - platform: output
+    id: "relay"
+    name: "Relay"
+    output: "relay_output"
+
+binary_sensor:
+  - platform: gpio
+    name: "Switch"
+    pin: GPIO4
+    on_press:
+      then:
+        - switch.turn_on: "relay"
+    on_release:
+      then:
+        - switch.turn_off: "relay"
+    filters:
+      - delayed_on_off: 50ms
+
+sensor:
+  - id: !extend temp_analog_reading
+    update_interval: 5s
+  - id: !extend ntc_temperature
+    on_value_range:
+      - above: "80.0"
+        then:
+          - switch.turn_off: "relay"
+
+  - platform: adc
+    name: "Relay Supply Voltage"
+    pin: GPIO33
+    attenuation: 12db
+    filters:
+      - multiply: ${ 8 * calibration_relay_adc_multiplier }
+
+  - platform: hlw8012
+    model: BL0937
+    id: bl0937_id
+    sel_pin:
+      number: GPIO23
+      inverted: true
+    cf_pin:
+      number: GPIO5
+      ignore_strapping_warning: true
+    cf1_pin: GPIO18
+    current_resistor: ${current_res}
+    voltage_divider: ${voltage_div}
+    current:
+      name: "Current"
+      id: current
+      unit_of_measurement: A
+      accuracy_decimals: 3
+      icon: mdi:flash-outline
+      on_value:
+        then:
+          - component.update: apparent_power
+      # on_value_range:
+      #   - above: "16"
+      #     then:
+      #       - switch.turn_off: "relay"
+      #       - logger.log: "Over-current protection triggered!"
+    voltage:
+      name: "Voltage"
+      id: voltage
+      unit_of_measurement: V
+      accuracy_decimals: 1
+      icon: mdi:flash-outline
+      on_value:
+        then:
+          - component.update: apparent_power
+      # on_value_range:
+      #   - above: "250"
+      #     then:
+      #       - switch.turn_off: "relay"
+      #       - logger.log: "Over-voltage protection triggered!"
+    power:
+      name: "Power"
+      unit_of_measurement: W
+      id: power
+      icon: mdi:flash-outline
+      on_value_range:
+        - above: "3600"
+          then:
+            - switch.turn_off: "relay"
+            - logger.log: "Over-power protection triggered!"
+    change_mode_every: 2
+    update_interval: 10s
+
+  - platform: total_daily_energy
+    id: daily_energy_consumed
+    name: "Daily Energy Consumed"
+    power_id: power
+    filters:
+      - multiply: 0.001
+    unit_of_measurement: kWh
+    icon: mdi:clock-alert
+
+  - platform: template
+    id: apparent_power
+    name: "Apparent Power"
+    state_class: measurement
+    device_class: apparent_power
+    unit_of_measurement: "VA"
+    update_interval: never
+    lambda: |-
+      return id(voltage).state * id(current).state;
+    on_value:
+      then:
+        - component.update: power_factor
+        - component.update: reactive_power
+
+  - platform: template
+    id: reactive_power
+    name: "Reactive Power"
+    state_class: measurement
+    device_class: reactive_power
+    unit_of_measurement: "var"
+    update_interval: never
+    lambda: |-
+      return id(apparent_power).state * (1 - id(power_factor).state);
+
+  - platform: template
+    id: power_factor
+    name: "Power Factor"
+    state_class: measurement
+    device_class: power_factor
+    update_interval: never
+    lambda: |-
+      float r = id(power).state;
+      float a = id(apparent_power).state;
+      if (r == 0.0 && a == 0.0) {
+        return 1.0;
+      }
+      return r / a;
+    on_value:
+      then:
+        - component.update: reactive_power
+
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: status_led_id
+    disabled_by_default: true
+    entity_category: diagnostic
+    pin:
+      number: GPIO0
+      inverted: true
+      ignore_strapping_warning: true

@@ -1,0 +1,42 @@
+substitutions:
+  # shelly_button_gpio_number: GPIO1
+  shelly_button_gpio_pin:
+    number: ${shelly_button_gpio_number}
+    mode:
+      input: true
+      pullup: true
+    inverted: true
+  shelly_button_default_action: []
+  shelly_button_longpress_action: []
+  # Separate _internal substitutions so that assigning to the above replaces
+  # (rather than appends to) the default action.
+  _shelly_button_default_action_internal:
+    - button.press: button_safe_mode
+  _shelly_button_longpress_action_internal:
+    - button.press: button_factory_reset
+
+binary_sensor:
+  - platform: gpio
+    id: shelly_button_id
+    name: "Button"
+    entity_category: diagnostic
+    pin: ${shelly_button_gpio_pin}
+    filters:
+      - settle: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at least 5s
+        then:
+          - logger.log: "Button held for 5s"
+      - timing:
+          - ON for at least 10s
+        then:
+          - logger.log: "Button held for 10s"
+      - timing:
+          - ON for 5s to 10s
+          - OFF for at least 100ms
+        then: ${shelly_button_default_action or _shelly_button_default_action_internal}
+      - timing:
+          - ON for at least 10s
+          - OFF for at least 100ms
+        then: ${shelly_button_longpress_action or _shelly_button_longpress_action_internal}

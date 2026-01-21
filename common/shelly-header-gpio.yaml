@@ -1,0 +1,16 @@
+substitutions:
+  # shelly_header_gpio_number: GPIO19
+  shelly_header_gpio_pin:
+    number: ${shelly_header_gpio_number}
+    inverted: true
+    mode:
+      input: true
+      pullup: true
+
+binary_sensor:
+  - platform: gpio
+    id: binary_sensor_header_gpio_id
+    name: "Header GPIO"
+    entity_category: diagnostic
+    disabled_by_default: true
+    pin: ${shelly_header_gpio_pin}

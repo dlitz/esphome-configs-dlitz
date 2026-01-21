@@ -1,0 +1,268 @@
+substitutions:
+  # Use BK7231GUIFlashTool to dump tuya_config.json and then paste the result here.
+  # tuya_config: { ... }
+  button_default_action: []
+  _button_default_action_internal:
+    - button.press: button_toggle_all
+
+  # Setting this to true allows LT_AUTO_DOWNLOAD_REBOOT to work, but disables the K3 button.
+  debug_remove_button_k3: false  # set true for LT_AUTO_DOWNLOAD_REBOOT support
+
+packages:
+  # - !include common/bk72xx-mdns-debug.yaml
+  - !include common/bk72xx-mdns-fix.yaml
+  - !include common/cpu-temperature.yaml
+  - !include common/factory-reset.yaml
+  - !include common/flash-write-interval.yaml
+  - !include common/git-branch.yaml
+  - !include common/ota.yaml
+  - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
+  - !include common/safe-mode.yaml
+  - !include common/time.yaml
+  - !include common/uptime-info.yaml
+  - !include common/wifi-info.yaml
+
+esphome:
+  name: huacaoe-tywb-4ch-common
+  friendly_name: "Huacaoe 4-Channel Relay"
+  comment: "Huacaoe TYWB 4ch-RF 4-channel relay (common template)"
+  name_add_mac_suffix: true
+  project:
+    name: "dlitz.huacaoe-tywb-4ch-common"
+    version: "v0.0.0"
+  platformio_options:
+    upload_speed: 2_000_000
+
+bk72xx:
+  board: cb3s   # Flash size: 2MiB, CPU Frequency: 120MHz
+  framework:  # LibreTiny
+    options:
+      # LT_LOG_HEAP: 1
+      LT_AUTO_DOWNLOAD_REBOOT: 1  # this only works when the RXD1 GPIO is configured as a serial port
+      # MDNS_TXT_RDATA_SIZE: 384    # https://github.com/esphome/esphome/issues/11281
+      LWIP_DHCP_DOES_ACD_CHECK: 0 # https://github.com/libretiny-eu/libretiny/issues/316
+
+    # version: "1.9.2"
+    # source: "https://github.com/dlitz/libretiny.git#mdns-big-txt"
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dlitz/esphome-configs-dlitz.git
+      ref: ${git_branch}
+    refresh: always
+
+# Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+debug:
+
+# Enable Home Assistant API with dynamic key
+api:
+  encryption:
+
+wifi:
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret fallback_ap_password
+
+captive_portal:
+
+network:
+  enable_ipv6: true
+
+button:
+  - platform: template
+    id: button_toggle_all
+    name: Toggle All
+    on_press:
+      - if:
+          any:
+            - switch.is_on: relay_1
+            - switch.is_on: relay_2
+            - switch.is_on: relay_3
+            - switch.is_on: relay_4
+          then:
+            - switch.turn_off: relay_1
+            - switch.turn_off: relay_2
+            - switch.turn_off: relay_3
+            - switch.turn_off: relay_4
+            - logger.log: "Toggle All button pressed: Turned all off"
+          else:
+            - switch.turn_on: relay_1
+            - switch.turn_on: relay_2
+            - switch.turn_on: relay_3
+            - switch.turn_on: relay_4
+            - logger.log: "Toggle All button pressed: Turned all on"
+
+light:
+  - platform: status_led
+    name: "Status LED"
+    id: status_led_id
+    disabled_by_default: true
+    entity_category: diagnostic
+    pin:
+      number: "${tuya_config.netled1_pin}"
+      inverted: ${not(tuya_config.netled1_lv | int)}
+    effects:
+      - strobe:
+          name: Blink
+          colors:
+            - state: true
+              duration: 250ms
+            - state: false
+              duration: 250ms
+      - strobe:
+          name: Fast Blink
+          colors:
+            - state: true
+              duration: 50ms
+            - state: false
+              duration: 50ms
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+    id: status_sensor
+
+  - platform: gpio
+    id: toggle_all_button
+    pin:
+      number: "${tuya_config.total_bt_pin}"
+      inverted: ${not(tuya_config.total_bt_lv | int)}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    name: "Reset, Toggle All Button"
+    on_multi_click:
+      # FIXME: status_led effects get overridden when app is in a warning or error state
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 10ms
+        then: ${button_default_action or _button_default_action_internal}
+      - timing:
+          - ON for at least 2s
+        then:
+          - light.turn_on:
+              id: status_led_id
+              effect: Blink
+      - timing:
+          - ON for 2s to 10s
+          - OFF for at least 10ms
+        then:
+          - logger.log: "Button held for 2-10s: Restart"
+          - button.press: button_restart
+      - timing:
+          - ON for at least 10s
+        then:
+          - light.turn_on:
+              id: status_led_id
+              effect: Fast Blink
+      - timing:
+          - ON for at least 10s
+          - OFF for at least 10ms
+        then:
+          - logger.log: "Button held for over 10s: Factory reset"
+          - button.press: button_factory_reset
+
+  - platform: gpio
+    name: "Button K1"
+    id: button_k1
+    pin:
+      number: "${tuya_config.bt1_pin}"
+      inverted: ${not(tuya_config.bt1_lv | int)}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    on_click:
+      then:
+        - switch.toggle: relay_1
+        - logger.log: "Button K1 pressed: Toggle Relay 1"
+
+  - platform: gpio
+    name: "Button K2"
+    id: button_k2
+    pin:
+      number: "${tuya_config.bt2_pin}"
+      inverted: ${not(tuya_config.bt2_lv | int)}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    on_click:
+      then:
+        - switch.toggle: relay_2
+        - logger.log: "Button K2 pressed: Toggle Relay 2"
+
+  - platform: gpio
+    name: "Button K3"
+    id: button_k3
+    pin:
+      number: "${tuya_config.bt3_pin}"
+      inverted: ${not(tuya_config.bt3_lv | int)}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    on_click:
+      then:
+        - switch.toggle: relay_3
+        - logger.log: "Button K3 pressed: Toggle Relay 3"
+
+  - platform: gpio
+    name: "Button K4"
+    id: button_k4
+    pin:
+      number: "${tuya_config.bt4_pin}"
+      inverted: ${not(tuya_config.bt4_lv | int)}
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    on_click:
+      then:
+        - switch.toggle: relay_4
+        - logger.log: "Button K4 pressed: Toggle Relay 4"
+
+  # This allows LT_AUTO_DOWNLOAD_REBOOT to work, but breaks the button.
+  - id: !remove ${ "button_k3" if debug_remove_button_k3 else ""}
+
+switch:
+  - platform: gpio
+    name: "Relay 1"
+    id: relay_1
+    pin:
+      number: "${tuya_config.rl1_pin}"
+      inverted: ${not(tuya_config.rl1_lv | int)}
+
+  - platform: gpio
+    name: "Relay 2"
+    id: relay_2
+    pin:
+      number: "${tuya_config.rl2_pin}"
+      inverted: ${not(tuya_config.rl2_lv | int)}
+
+  - platform: gpio
+    id: relay_3
+    name: "Relay 3"
+    pin:
+      number: "${tuya_config.rl3_pin}"
+      inverted: ${not(tuya_config.rl3_lv | int)}
+
+  - platform: gpio
+    id: relay_4
+    name: "Relay 4"
+    pin:
+      number: "${tuya_config.rl4_pin}"
+      inverted: ${not(tuya_config.rl4_lv | int)}
+

@@ -1,0 +1,25 @@
+# Common options for the ESP32-U4WDH SoC
+# CPU: ESP32-U4WDH (revision v3.1)
+# Features: Wi-Fi, BT, Dual Core + LP Core, 240MHz, Embedded Flash, Vref calibration in eFuse, Coding Scheme None
+# Crystal frequency: 40MHz
+# Memory: 320KB RAM, 4MB Flash
+
+packages:
+  - !include esp32.yaml
+
+esphome:
+  platformio_options:
+    board_build.flash_mode: dio
+
+esp32:
+  variant: esp32
+  # cpu_frequency: 240MHz
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+    # advanced:
+    #   minimum_chip_revision: "3.1"    # Requires ESPHome 2026.1.0 ?
+    sdkconfig_options:
+      CONFIG_MBEDTLS_SSL_PROTO_TLS1_3: "y"  # TLS1.3 support still isn't enabled by default in IDF 5.5.2
+      CONFIG_MBEDTLS_DEFAULT_CERTIFICATE_BUNDLE: CONFIG_MBEDTLS_CERTIFICATE_BUNDLE_DEFAULT_CMN
+      # CONFIG_LWIP_NETIF_LOOPBACK: "n"     # Apparently there's a bug causing the ICMPv6 Router Solicitation to go out over the loopback interface rather than wifi

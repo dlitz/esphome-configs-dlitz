@@ -1,0 +1,54 @@
+esphome:
+  includes:
+    - "<lwip/apps/mdns_priv.h>" # for struct mdns_service, struct mdns_txtdata
+    - "<lwip/init.h>"           # for LWIP_VERSION_STRING
+
+bk72xx:
+  framework:
+    loglevel: debug
+    debug:
+      - mdns
+      - lwip
+    sdk_silent: auto
+
+text_sensor:
+  - platform: libretiny
+    version:
+      id: libretiny_version_id
+      name: LibreTiny Version
+
+  - platform: template
+    name: "LWIP_VERSION_STRING"
+    entity_category: diagnostic
+    lambda: |-
+      static const std::string s = LWIP_VERSION_STRING;
+      return s;
+
+sensor:
+  - platform: template
+    name: "MDNS_TXT_RDATA_SIZE"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    lambda: |-
+      #ifdef MDNS_TXT_RDATA_SIZE
+      return MDNS_TXT_RDATA_SIZE;
+      #else
+      return {};
+      #endif
+
+  - platform: template
+    name: "size of mdns_service.txtdata"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    lambda: |-
+      struct mdns_service srv;
+      return sizeof(srv.txtdata);
+
+  - platform: template
+    name: "size of mdns_txtdata.rdata"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    lambda: |-
+      struct mdns_txtdata txt;
+      return sizeof(txt.rdata);
+
