@@ -1,4 +1,5 @@
 # Shelly EM Gen3
+# Model number: S3EM-002CXCEU50
 # PCB markings: "EM Gen3_v0.1.3", "B2519"
 # SoC: ESP-Shelly-C38F (similar to ESP32-C3)
 # CPU: ESP32-C3 (QFN32) (revision v0.4)
@@ -12,15 +13,19 @@
 # GPIOs:
 #   GPIO0 - Dry-contact relay (normally open)
 #   GPIO1 - Pushbutton
-#   GPIO3 - ADC for NTC temperature probe
+#   GPIO3 - ADC for NTC temperature sensor
+#   GPIO4 - ADE7953 IRQ pin (active low)
+#   GPIO5 - ADE7953 RESET pin (active low)
 #   GPIO6 - I2C SCL
 #   GPIO7 - I2C SDA
 #   GPIO9 - Status LED (active low)
 #   GPIO18 - Pin 1 of 7-pin header
+#   GPIO20 - UART receive (U0RXD)
+#   GPIO21 - UART transmit (U0TXD)
 #
 # I2C devices:
 #  0x38 - ADE7953 Power Sensor
-#  0x51 - AiP8563 Battery-backed real-time clock (not configured here)
+#  0x51 - AiP8563 Battery-backed real-time clock (not currently supported by ESPHome)
 
 # Outputting LOW on GPIO5 seems to produce HIGH on GPIO4, and vice versa
 
@@ -77,6 +82,8 @@ logger:
   level: DEBUG
   hardware_uart: uart0
 
+# debug:
+
 # Enable Home Assistant API with dynamic key
 api:
   encryption:
@@ -91,7 +98,7 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    password: !secret fallback_ap_password
+    password: !secret default_ap_password
 
 captive_portal:
 
@@ -130,9 +137,11 @@ switch:
 
 sensor:
   # Note that on the Shelly EM Gen3, channels "A" and "B" are swapped between the chipset and the labels on the device.
-  # This device also apparently does not need/have an irq_pin.
+  # The nIRQ pin of the ade7953 device seems to be connected to pin 9 (GPIO4)
+  # of the ESP-Shelly-C38F.
   - platform: ade7953_i2c
     id: ade7953_id
+    irq_pin: GPIO4
     update_interval: ${update_interval}
     use_accumulated_energy_registers: true
 
