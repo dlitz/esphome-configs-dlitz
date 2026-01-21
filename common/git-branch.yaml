@@ -1,2 +1,9 @@
 substitutions:
   git_branch: wip
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dlitz/esphome-configs-dlitz.git
+      ref: ${git_branch}
+    refresh: always
