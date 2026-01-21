@@ -52,13 +52,6 @@ packages:
   - !include common/uptime-info.yaml
   - !include common/wifi-info.yaml
 
-external_components:
-  - source:
-      type: git
-      url: https://github.com/dlitz/esphome-configs-dlitz.git
-      ref: ${git_branch}
-    refresh: always
-
 esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"

@@ -46,13 +46,6 @@ bk72xx:
     # version: "1.9.2"
     # source: "https://github.com/dlitz/libretiny.git#mdns-big-txt"
 
-external_components:
-  - source:
-      type: git
-      url: https://github.com/dlitz/esphome-configs-dlitz.git
-      ref: ${git_branch}
-    refresh: always
-
 # Logs are output on the TXD2 pin (Pin 11 - third from the bottom on the right side)
 logger:
   level: DEBUG
