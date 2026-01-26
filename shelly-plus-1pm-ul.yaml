@@ -112,7 +112,7 @@ binary_sensor:
       - delayed_on_off: 50ms
 
 sensor:
-  - id: !extend temp_analog_reading
+  - id: !extend ntc_temp_analog_reading
     update_interval: 5s
   - id: !extend ntc_temperature
     on_value_range:
