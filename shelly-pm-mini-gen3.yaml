@@ -90,7 +90,7 @@ light:
 sensor:
   - platform: bl0942
     id: bl0942_id
-    uart_id: uart_0
+    uart_id: bl0942_uart_id
     update_interval: ${update_interval}
     voltage_reference: ${calibration_voltage_reference}
     current_reference: ${calibration_current_reference}
@@ -188,7 +188,7 @@ sensor:
         - component.update: reactive_power
 
 uart:
-  - id: uart_0
+  - id: bl0942_uart_id
     tx_pin: GPIO6
     rx_pin:
       number: GPIO7
