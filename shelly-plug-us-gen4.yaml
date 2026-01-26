@@ -1,0 +1,514 @@
+# shelly plug us gen4
+# PCB markings: "US_plug_Gen4_V0.0.3"
+# Model: S4PL-00116US
+# Case markings: B2508
+# SoC: ESP-Shelly-C68F
+# CPU: ESP32-C6 variant
+# Power sensor: BL0942
+
+# References:
+# - https://documentation.espressif.com/esp32-c6_datasheet_en.pdf
+# - https://documentation.espressif.com/esp32-c6_technical_reference_manual_en.pdf
+# - https://optoelectronics.liteon.com/upload/download/DS86-2013-0004/LTR-303ALS-01_DS_V1.1.PDF
+# - https://www.belling.com.cn/media/file_object/bel_product/BL0942/datasheet/BL0942_V1.06_en.pdf
+
+# GPIOs:
+#   GPIO3 - NTC? Maybe?  Maybe not?
+#   GPIO4 - Relay
+#   GPIO5? - seems to have some other device transmitting on it (maybe the Zigbee interface? maybe just a floating pin? ADC?)
+#   GPIO6 - WS2812-compatible LED strip (12 LEDs)
+#   GPIO7 - Button (active low)
+#   GPIO9 - boot strapping pin (-> DTR)
+#   GPIO10 - I2C SDA
+#   GPIO11 - I2C SCL
+#   GPIO16 - U0TXD
+#   GPIO17 - U0RXD
+#   GPIO18 - BL0942 RX
+#   GPIO19 - BL0942 TX
+
+# Test points:
+#   TP1: +3.3V
+#   TP2: GPIO9
+#   TP3: EN
+#   TP4: GND
+#   TP5: RxD
+#   TP6: TxD
+
+# Floating GPIO values:                     Pulled-down GPIO values:      Pulled-up GPIO values:
+# - 'GPIO0': LOW                            - 'GPIO0': LOW                - 'GPIO0': HIGH
+# - 'GPIO1': LOW                            - 'GPIO1': LOW                - 'GPIO1': HIGH
+# - 'GPIO2': HIGH                           - 'GPIO2': HIGH               ! 'GPIO2': HIGH
+# - 'GPIO3': HIGH                           * 'GPIO3': LOW                - 'GPIO3': HIGH
+# - 'GPIO4': LOW                            - 'GPIO4': LOW                ! 'GPIO4': LOW          - Relay
+# - 'GPIO5': LOW                            - 'GPIO5': LOW                - 'GPIO5': HIGH
+# - 'GPIO6': LOW                            - 'GPIO6': LOW                ! 'GPIO6': LOW
+# - 'GPIO7': HIGH                           - 'GPIO7': HIGH               ! 'GPIO7': HIGH         - Button
+# - 'GPIO8': HIGH                           - 'GPIO8': HIGH               ! 'GPIO8': HIGH
+# - 'GPIO9': HIGH                           - 'GPIO9': HIGH               ! 'GPIO9': HIGH         - Boot select pin
+# - 'GPIO10': HIGH                          - 'GPIO10': HIGH              ! 'GPIO10': HIGH        - I2C SDA
+# - 'GPIO11': HIGH                          - 'GPIO11': HIGH              ! 'GPIO11': HIGH        - I2C SCL
+# - 'GPIO12': LOW                           - 'GPIO12': LOW               - 'GPIO12': HIGH
+# - 'GPIO13': HIGH                          * 'GPIO13': LOW               - 'GPIO13': HIGH
+# - 'GPIO14': LOW                           - 'GPIO14': LOW               - 'GPIO14': HIGH
+# - 'GPIO15': LOW                           - 'GPIO15': LOW               - 'GPIO15': HIGH
+# - 'GPIO17': HIGH                          - 'GPIO17': HIGH              ! 'GPIO17': HIGH        - U0RXD
+# - 'GPIO18': HIGH                          * 'GPIO18': LOW               - 'GPIO18': HIGH
+# - 'GPIO19': HIGH  # flickers on and off   * 'GPIO19': LOW               - 'GPIO19': HIGH
+# - 'GPIO20': LOW                           - 'GPIO20': LOW               ! 'GPIO20': LOW
+# - 'GPIO21': LOW                           - 'GPIO21': LOW               - 'GPIO21': HIGH
+# - 'GPIO22': LOW                           - 'GPIO22': LOW               - 'GPIO22': HIGH
+# - 'GPIO23': LOW                           - 'GPIO23': LOW               - 'GPIO23': HIGH
+
+# I2C devices:
+#  0x29 - Liteon LTR-303ALS illuminance sensor (or compatible)
+
+
+# There's an illuminance sensor
+
+# "shelly_pm_bl0942.cp:102 BL0942 Voltage coeff 4012891.1, Current coeff 399000.0, Power coeff 102974600.0, Energy coeff 11909381970.3"
+# "shelly_ltr303_sensor.cpp"
+
+# TODO:
+#   - Overheating protection
+#   - Overvoltage protection
+#   - Overcurrent protection
+#   - Overpower protection
+
+substitutions:
+  #calibration_voltage_reference: 15873.35944299      # esphome default
+  #calibration_voltage_reference: 14393.902006359718  # calibrated on device ec:da:3b:c4:9f:7c
+  calibration_voltage_reference: 4012891.1            # from Shelly firmware log
+  #calibration_current_reference: 251213.46469622     # esphome default
+  #calibration_current_reference: 245340.94214487978  # calibrated on device ec:da:3b:c4:9f:7c
+  calibration_current_reference: 399000.0             # from Shelly firmware log
+  calibration_power_reference: 102974600.0            # from Shelly firmware log
+  calibration_energy_reference: 11909381970.3         # from Shelly firmware log
+  line_frequency: 60Hz
+  update_interval: 5s
+
+  shelly_ntc_temperature_pin: GPIO5   # (?)
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/shelly-plug-us-gen4.yaml@${git_branch}
+
+packages:
+  - !include common/esp-shelly-c38f.yaml
+  - !include common/cpu-temperature.yaml
+  - !include common/factory-reset.yaml
+  - !include common/flash-write-interval.yaml
+  - !include common/git-branch.yaml
+  - !include common/ota.yaml
+  - !include common/ota-update-password.yaml
+  - !include common/restart.yaml
+  - !include common/safe-mode.yaml
+  - !include common/shelly-ntc-temperature.yaml
+  - !include common/time.yaml
+  - !include common/uptime-info.yaml
+  - !include common/wifi-info.yaml
+
+esphome:
+  name: shelly-plug-us-gen4
+  friendly_name: "Shelly Plug US Gen4"
+  comment: "Shelly Plus US Gen4 - Smart plug with multi-protocol connectivity, power metering and LED indication"
+  name_add_mac_suffix: true
+  project:
+    name: "dlitz.shelly-plug-us-gen4"
+    version: "v0.0.0"
+
+esp32:
+  variant: esp32c6
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+  level: DEBUG
+  baud_rate: 115200
+  hardware_uart: uart0
+  logs:
+    ltr_als_ps: INFO
+
+debug:
+
+# Enable Home Assistant API with dynamic key
+api:
+  encryption:
+
+#web_server:
+
+i2c:
+  sda: GPIO10
+  scl: GPIO11
+  frequency: 100kHz
+  scan: true
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+  enable_btm: true
+  enable_rrm: true
+  min_auth_mode: WPA2
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret default_ap_password
+
+captive_portal:
+
+network:
+  enable_ipv6: true
+
+
+sensor:
+  - id: !extend ntc_temp_analog_reading
+    update_interval: 5s
+  - id: !extend cpu_temperature
+    update_interval: 5s
+  - platform: ltr_als_ps
+    address: 0x29
+    update_interval: 30s
+    type: ALS
+    ambient_light:
+      name: "LTR303 Ambient light"
+    infrared_counts:
+      name: "LTR303 Infrared counts"
+    full_spectrum_counts:
+      name: "LTR303 Full spectrum counts"
+    actual_gain:
+      name: "LTR303 Actual gain"
+    actual_integration_time:
+      name: "LTR303 Actual integration time"
+
+  - platform: bl0942
+    id: bl0942_id
+    uart_id: bl0942_uart_id
+    update_interval: ${update_interval}
+    voltage_reference: ${calibration_voltage_reference}
+    current_reference: ${calibration_current_reference}
+    power_reference: ${calibration_power_reference}
+    energy_reference: ${calibration_energy_reference}
+    line_frequency: ${line_frequency}
+
+    voltage:
+      name: "Voltage"
+      id: voltage
+      icon: mdi:alpha-v-circle-outline
+      device_class: voltage
+      # on_value:
+      #   then:
+      #     - component.update: apparent_power
+
+    current:
+      name: "Current"
+      id: current
+      icon: mdi:alpha-a-circle-outline
+      device_class: current
+      # on_value:
+      #   then:
+      #     - component.update: apparent_power
+    power:
+      name: "Power"
+      id: power
+      icon: mdi:transmission-tower
+      device_class: power
+      state_class: measurement
+      # on_value:
+      #   then:
+      #     - component.update: power_factor
+    energy:
+      name: "Energy"
+      id: energy
+      icon: mdi:meter-electric
+      device_class: energy
+    frequency:
+      name: "Frequency"
+      id: line_frequency
+      accuracy_decimals: 2
+      icon: mdi:cosine-wave
+      device_class: frequency
+      state_class: measurement
+
+##  - platform: total_daily_energy
+##    id: daily_energy_consumed_id
+##    name: "Daily Energy Consumed"
+##    power_id: power
+##    icon: mdi:hours-24
+##    unit_of_measurement: "kWh"
+##    state_class: total_increasing
+##    device_class: energy
+##    accuracy_decimals: 3
+##    filters:
+##      - multiply: 0.001
+##
+#  - platform: template
+#    id: apparent_power
+#    name: "Apparent Power"
+#    state_class: measurement
+#    device_class: apparent_power
+#    unit_of_measurement: "VA"
+#    update_interval: never
+#    lambda: |-
+#      return id(voltage).state * id(current).state;
+#    on_value:
+#      then:
+#        - component.update: power_factor
+#        - component.update: reactive_power
+#
+#  - platform: template
+#    id: reactive_power
+#    name: "Reactive Power"
+#    state_class: measurement
+#    device_class: reactive_power
+#    unit_of_measurement: "var"
+#    update_interval: never
+#    lambda: |-
+#      return id(apparent_power).state * (1 - id(power_factor).state);
+#
+#  - platform: template
+#    id: power_factor
+#    name: "Power Factor"
+#    state_class: measurement
+#    device_class: power_factor
+#    update_interval: never
+#    lambda: |-
+#      float r = id(power).state;
+#      float a = id(apparent_power).state;
+#      if (r == 0.0 && a == 0.0) {
+#        return 1.0;
+#      }
+#      return r / a;
+#    on_value:
+#      then:
+#        - component.update: reactive_power
+
+  - { platform: adc, name: ADC_GPIO0, pin: GPIO0, update_interval: 5s }
+  - { platform: adc, name: ADC_GPIO1, pin: GPIO1, update_interval: 5s }
+  - { platform: adc, name: ADC_GPIO2, pin: GPIO2, update_interval: 5s }
+  - { platform: adc, name: ADC_GPIO3, pin: GPIO3, update_interval: 5s }
+  #- { platform: adc, name: ADC_GPIO4, pin: GPIO4, update_interval: 5s }
+  #- { platform: adc, name: ADC_GPIO5, pin: GPIO5, update_interval: 5s }
+  #- { platform: adc, name: ADC_GPIO6, pin: GPIO6, update_interval: 5s }
+
+  - platform: template
+    name: App state (uint8)
+    lambda: |-
+      return App.get_app_state();
+    update_interval: 1s
+
+uart:
+  - id: bl0942_uart_id
+    tx_pin: GPIO18
+    rx_pin:
+      number: GPIO19
+      mode:
+        input: true
+        pullup: true
+    baud_rate: 9600
+    debug:
+      direction: BOTH
+      after:
+        delimiter: "\n"
+      sequence:
+        - lambda: UARTDebug::log_hex(direction, bytes, 32);
+
+output:
+  - platform: gpio
+    id: "relay_output"
+    pin: GPIO4
+
+  - platform: template
+    id: status_led_output
+    type: binary
+    write_action:
+      - lambda: |-
+          static int prev_state = -1;
+          //ESP_LOGD("my_status", "prev_state: %d, state: %d, state size: %d", prev_state, (int)state, sizeof(state));
+          if (prev_state <= 0 && state > 0) {
+            prev_state = state;
+            auto call = id(rgb_led).turn_on();
+            call.set_brightness(0.30);
+            call.set_rgb(1.0, 0.5, 0.0);    // amber
+            call.set_transition_length(0);
+            call.set_publish(false);    // Don't spam the logs
+            call.perform();
+          } else if (prev_state > 0 && state == 0) {
+            prev_state = state;
+            auto call = id(rgb_led).make_call();
+            call.from_light_color_values(id(rgb_led).remote_values);
+            call.set_transition_length(0);
+            call.set_publish(false);    // Don't spam the logs
+            call.perform();
+          }
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: rgb_led
+    name: RGB LED
+    #entity_category: config
+    pin: GPIO6
+    rgb_order: GRB
+    chipset: WS2812
+    rmt_symbols: 48
+    num_leds: 12
+    restore_mode: ALWAYS_ON
+    initial_state:    # XXX This doesn't seem to work for some rason
+      state: true
+      red: 0%
+      green: 100%
+      blue: 0%
+      brightness: 30%
+    effects:
+      - strobe:
+      - addressable_color_wipe:
+          name: Identify
+          add_led_interval: 100ms
+          colors:
+            - red: 0%
+              green: 0%
+              blue: 100%
+              num_leds: 3
+            - red: 0%
+              green: 0%
+              blue: 100%
+              num_leds: 3
+            - red: 0%
+              green: 50%
+              blue: 50%
+              num_leds: 3
+            - red: 0%
+              green: 50%
+              blue: 50%
+              num_leds: 3
+      - strobe:
+          name: Blink Green
+          colors:
+            - state: true
+              brightness: 100%
+              red: 0%
+              green: 100%
+              blue: 0%
+              duration: 250ms
+            - state: false
+              brightness: 0%
+              duration: 250ms
+      - strobe:
+          name: Fast Blink Red Blue
+          colors:
+            - state: true
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 50ms
+            - state: true
+              brightness: 100%
+              red: 0%
+              green: 0%
+              blue: 100%
+              duration: 50ms
+
+  - platform: status_led
+    internal: true
+    id: status_led_id
+    output: status_led_output
+
+switch:
+  - platform: output
+    id: "relay"
+    name: "Relay"
+    output: "relay_output"
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - logger.log: "Relay turned on"
+    on_turn_off:
+      - logger.log: "Relay turned off"
+
+  - platform: template
+    name: Identify
+    entity_category: config
+    optimistic: true
+    turn_on_action:
+      - light.turn_on:
+          id: rgb_led
+          effect: Identify
+      - logger.log:
+          format: "identify ON"
+          level: INFO
+    turn_off_action:
+      - light.turn_off:
+          id: rgb_led
+      - logger.log:
+          format: "identify OFF"
+          level: INFO
+
+  - platform: template
+    id: trig_warning
+    name: Trigger warning
+    entity_category: diagnostic
+    disabled_by_default: true
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(trig_warning).status_set_warning(LOG_STR("foo"));
+    turn_off_action:
+      - lambda: |-
+          id(trig_warning).status_clear_warning();
+
+  - platform: template
+    id: trig_error
+    name: Trigger error
+    entity_category: diagnostic
+    disabled_by_default: true
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(trig_error).status_set_error(LOG_STR("foo"));
+    turn_off_action:
+      - lambda: |-
+          id(trig_error).status_clear_error();
+
+binary_sensor:
+  - platform: gpio
+    id: button_id
+    name: "Button"
+    pin:
+      number: GPIO7
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - settle: 10ms
+    on_multi_click:
+      - timing:
+          - ON for at most 1s
+          - OFF for at least 10ms
+        then:
+          - switch.toggle: relay
+          - logger.log: "Button pressed. Toggled relay."
+      - timing:
+          - ON for at least 5s
+        then:
+          - light.turn_on:
+              id: status_led_id
+              effect: Blink Greem
+      - timing:
+          - ON for 5s to 10s
+          - OFF for at least 10ms
+        then:
+          - logger.log: "Button held for 5-10s: Restart"
+          - button.press: button_restart
+      - timing:
+          - ON for at least 10s
+        then:
+          - light.turn_on:
+              id: status_led_id
+              effect: Fast Blink Red Blue
+      - timing:
+          - ON for at least 10s
+          - OFF for at least 10ms
+        then:
+          - logger.log: "Button held for over 10s: Factory reset"
+          - button.press: button_factory_reset
