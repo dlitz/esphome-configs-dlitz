@@ -69,6 +69,7 @@
 # "shelly_ltr303_sensor.cpp"
 
 # TODO:
+#   - Calibration
 #   - Overheating protection
 #   - Overvoltage protection
 #   - Overcurrent protection
@@ -77,12 +78,16 @@
 substitutions:
   #calibration_voltage_reference: 15873.35944299      # esphome default
   #calibration_voltage_reference: 14393.902006359718  # calibrated on device ec:da:3b:c4:9f:7c
-  calibration_voltage_reference: 4012891.1            # from Shelly firmware log
   #calibration_current_reference: 251213.46469622     # esphome default
   #calibration_current_reference: 245340.94214487978  # calibrated on device ec:da:3b:c4:9f:7c
-  calibration_current_reference: 399000.0             # from Shelly firmware log
-  calibration_power_reference: 102974600.0            # from Shelly firmware log
-  calibration_energy_reference: 11909381970.3         # from Shelly firmware log
+  #calibration_voltage_reference: 4012891.1            # from Shelly firmware log
+  #calibration_current_reference: 399000.0             # from Shelly firmware log
+  #calibration_power_reference: 102974600.0            # from Shelly firmware log
+  #calibration_energy_reference: 11909381970.3         # from Shelly firmware log
+  calibration_voltage_reference: !remove
+  calibration_current_reference: !remove
+  calibration_power_reference: !remove
+  calibration_energy_reference: !remove
   line_frequency: 60Hz
   update_interval: 5s
 
