@@ -132,7 +132,7 @@ switch:
   # Dry-contact relay - normally open
   - platform: gpio
     name: Relay
-    id: relay_id
+    id: relay
     pin: GPIO0
 
 sensor:
