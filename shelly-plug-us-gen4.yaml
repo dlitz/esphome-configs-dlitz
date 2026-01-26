@@ -92,7 +92,7 @@ dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-plug-us-gen4.yaml@${git_branch}
 
 packages:
-  - !include common/esp-shelly-c38f.yaml
+  - !include common/esp-shelly-c68f.yaml
   - !include common/cpu-temperature.yaml
   - !include common/factory-reset.yaml
   - !include common/flash-write-interval.yaml
@@ -115,12 +115,6 @@ esphome:
     name: "dlitz.shelly-plug-us-gen4"
     version: "v0.0.0"
 
-esp32:
-  variant: esp32c6
-  flash_size: 8MB
-  framework:
-    type: esp-idf
-
 # Enable logging
 logger:
   level: DEBUG
@@ -129,19 +123,11 @@ logger:
   logs:
     ltr_als_ps: INFO
 
-debug:
+# debug:
 
 # Enable Home Assistant API with dynamic key
 api:
   encryption:
-
-#web_server:
-
-i2c:
-  sda: GPIO10
-  scl: GPIO11
-  frequency: 100kHz
-  scan: true
 
 wifi:
   ssid: !secret wifi_ssid
@@ -160,6 +146,18 @@ captive_portal:
 network:
   enable_ipv6: true
 
+i2c:
+  sda: GPIO10
+  scl: GPIO11
+  frequency: 100kHz
+  scan: true
+
+# esp32_ble_tracker:
+#   scan_parameters:
+#     active: false
+#
+# bluetooth_proxy:
+#   active: false
 
 sensor:
   - id: !extend ntc_temp_analog_reading
@@ -196,27 +194,26 @@ sensor:
       id: voltage
       icon: mdi:alpha-v-circle-outline
       device_class: voltage
-      # on_value:
-      #   then:
-      #     - component.update: apparent_power
-
+      on_value:
+        then:
+          - component.update: apparent_power
     current:
       name: "Current"
       id: current
       icon: mdi:alpha-a-circle-outline
       device_class: current
-      # on_value:
-      #   then:
-      #     - component.update: apparent_power
+      on_value:
+        then:
+          - component.update: apparent_power
     power:
       name: "Power"
       id: power
       icon: mdi:transmission-tower
       device_class: power
       state_class: measurement
-      # on_value:
-      #   then:
-      #     - component.update: power_factor
+      on_value:
+        then:
+          - component.update: power_factor
     energy:
       name: "Energy"
       id: energy
@@ -230,58 +227,58 @@ sensor:
       device_class: frequency
       state_class: measurement
 
-##  - platform: total_daily_energy
-##    id: daily_energy_consumed_id
-##    name: "Daily Energy Consumed"
-##    power_id: power
-##    icon: mdi:hours-24
-##    unit_of_measurement: "kWh"
-##    state_class: total_increasing
-##    device_class: energy
-##    accuracy_decimals: 3
-##    filters:
-##      - multiply: 0.001
-##
-#  - platform: template
-#    id: apparent_power
-#    name: "Apparent Power"
-#    state_class: measurement
-#    device_class: apparent_power
-#    unit_of_measurement: "VA"
-#    update_interval: never
-#    lambda: |-
-#      return id(voltage).state * id(current).state;
-#    on_value:
-#      then:
-#        - component.update: power_factor
-#        - component.update: reactive_power
-#
-#  - platform: template
-#    id: reactive_power
-#    name: "Reactive Power"
-#    state_class: measurement
-#    device_class: reactive_power
-#    unit_of_measurement: "var"
-#    update_interval: never
-#    lambda: |-
-#      return id(apparent_power).state * (1 - id(power_factor).state);
-#
-#  - platform: template
-#    id: power_factor
-#    name: "Power Factor"
-#    state_class: measurement
-#    device_class: power_factor
-#    update_interval: never
-#    lambda: |-
-#      float r = id(power).state;
-#      float a = id(apparent_power).state;
-#      if (r == 0.0 && a == 0.0) {
-#        return 1.0;
-#      }
-#      return r / a;
-#    on_value:
-#      then:
-#        - component.update: reactive_power
+  - platform: total_daily_energy
+    id: daily_energy_consumed_id
+    name: "Daily Energy Consumed"
+    power_id: power
+    icon: mdi:hours-24
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: template
+    id: apparent_power
+    name: "Apparent Power"
+    state_class: measurement
+    device_class: apparent_power
+    unit_of_measurement: "VA"
+    update_interval: never
+    lambda: |-
+      return id(voltage).state * id(current).state;
+    on_value:
+      then:
+        - component.update: power_factor
+        - component.update: reactive_power
+
+  - platform: template
+    id: reactive_power
+    name: "Reactive Power"
+    state_class: measurement
+    device_class: reactive_power
+    unit_of_measurement: "var"
+    update_interval: never
+    lambda: |-
+      return id(apparent_power).state * (1 - id(power_factor).state);
+
+  - platform: template
+    id: power_factor
+    name: "Power Factor"
+    state_class: measurement
+    device_class: power_factor
+    update_interval: never
+    lambda: |-
+      float r = id(power).state;
+      float a = id(apparent_power).state;
+      if (r == 0.0 && a == 0.0) {
+        return 1.0;
+      }
+      return r / a;
+    on_value:
+      then:
+        - component.update: reactive_power
 
   - { platform: adc, name: ADC_GPIO0, pin: GPIO0, update_interval: 5s }
   - { platform: adc, name: ADC_GPIO1, pin: GPIO1, update_interval: 5s }
