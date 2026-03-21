@@ -386,12 +386,17 @@ font:
       - "\U000F1473"  # mdi:fan-speed-2
       - "\U000F1474"  # mdi:fan-speed-3
 
+  - file: "gfonts://Roboto"
+    id: roboto_20
+    size: 20
+
 lvgl:
   id: lvgl_id
   displays:
     - display_id
   touchscreens:
-    - touchscreen_id
+    - touchscreen_id: touchscreen_id
+      long_press_repeat_time: 100ms
   buffer_size: 25%
   log_level: WARN
   on_idle:
@@ -415,6 +420,8 @@ lvgl:
       text_color: 0xFFFFFF
       width: 100%
       height: 30
+    - id: factory_reset_button_style
+      bg_color: 0xFF0000
   top_layer:
     widgets:
       - obj:
@@ -520,3 +527,76 @@ lvgl:
                       - fan.turn_on:
                           id: fan_id
                           speed: 3
+
+    - id: page_diagnostics
+      widgets:
+      - button:
+          width: 164
+          height: 100
+          x: 2
+          y: 58
+          id: factory_reset_lvgl_button
+          styles: factory_reset_button_style
+          on_release:
+            - if:
+                condition:
+                  lambda: "return id(factory_reset_lvgl_button_longpress_ms) >= 10000;"
+                then:
+                  - light.turn_off: display_backlight
+                  - button.press: button_factory_reset
+                else:
+                  - lambda: |-
+                      id(factory_reset_lvgl_button_longpress_ms) = 0;
+                  - lvgl.style.update:
+                      id: factory_reset_button_style
+                      bg_color: 0xFF0000
+                      text_color: 0xFFFFFFF
+          on_press:
+            - lambda: |-
+                id(factory_reset_lvgl_button_longpress_ms) = 0;
+          on_long_press_repeat:
+            - logger.log:
+                format: "Long press repeat %d ms"
+                args: ["id(factory_reset_lvgl_button_longpress_ms)"]
+            - lambda: |-
+                id(factory_reset_lvgl_button_longpress_ms) += 100;
+            - if:
+                condition:
+                  lambda: "return id(factory_reset_lvgl_button_longpress_ms) == 10000;"
+                then:
+                  - lvgl.style.update:
+                      id: factory_reset_button_style
+                      bg_color: 0xFFFF00
+                      text_color: 0xFF0000
+                  - lvgl.widget.redraw: factory_reset_lvgl_button
+          widgets:
+            - label:
+                id: factory_reset_lvgl_button_label
+                align: CENTER
+                text: "Hold 10s\nfor Factory Reset"
+                text_align: CENTER
+                text_font: roboto_20
+
+      - button:
+          width: 164
+          height: 100
+          x: 2
+          y: 162
+          id: factory_reset_lvgl_cancel_button
+          on_release:
+            - lambda: |-
+                id(factory_reset_lvgl_button_longpress_ms) = 0;
+            - lvgl.page.show: page_main
+          widgets:
+            - label:
+                id: factory_reset_lvgl_cancel_button_label
+                align: CENTER
+                text: "Cancel"
+                text_align: CENTER
+                text_font: roboto_20
+
+globals:
+  - id: factory_reset_lvgl_button_longpress_ms
+    type: int
+    restore_value: no
+    initial_value: '0'
