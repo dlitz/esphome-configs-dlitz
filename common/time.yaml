@@ -1,3 +1,6 @@
+substitutions:
+  time_source: homeassistant_time
+
 time:
   - platform: homeassistant
     id: homeassistant_time
