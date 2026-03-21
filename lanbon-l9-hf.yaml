@@ -51,10 +51,9 @@ logger:
 #  baud_rate: 115200
   hardware_uart: uart0
 
-# Enable Home Assistant API
+# Enable Home Assistant API with dynamic key
 api:
   encryption:
-    key: !secret lanbon-l9-hf-1.hass_api_key
 
   on_client_connected:
     - lvgl.label.update:
