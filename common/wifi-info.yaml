@@ -15,28 +15,41 @@ sensor:
     device_class: ""
 
 text_sensor:
-  - platform: wifi_info
+  - id: wifi_info_text
+    platform: wifi_info
     ip_address:
+      id: ip_address_text
       name: Device IP Address
       address_0:
+        id: ip_address_0_text
         name: Device IP Address 0
       address_1:
+        id: ip_address_1_text
         name: Device IP Address 1
       address_2:
+        id: ip_address_2_text
         name: Device IP Address 2
       # address_3:
+      #   id: ip_address_3_text
       #   name: Device IP Address 3
       # address_4:
+      #   id: ip_address_3_text
       #   name: Device IP Address 4
     ssid:
+      id: ssid_text
       name: Device Connected SSID
     bssid:
+      id: bssid_text
       name: Device Connected BSSID
     mac_address:
+      id: mac_address_text
       name: Device MAC Address
     # scan_results:
+    #   id: scan_results_text
     #   name: Device Latest Scan Results
     # dns_address:
+    #   id: dns_address_text
     #   name: Device DNS Address
     # power_save_mode:
+    #   id: power_save_mode_text
     #   name: Device Wifi Power Save Mode
