@@ -70,12 +70,15 @@ network:
   enable_ipv6: true
   # min_ipv6_addr_count: 2
 
-# esp32_ble_tracker:
-#   scan_parameters:
-#     active: false
+esp32_improv:
+  authorizer: shelly_button_id
 
-# bluetooth_proxy:
-#   active: false
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
+
+bluetooth_proxy:
+  active: false
 
 light:
   - platform: status_led
