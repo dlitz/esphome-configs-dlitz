@@ -70,6 +70,8 @@ network:
   enable_ipv6: true
   # min_ipv6_addr_count: 2
 
+improv_serial:
+
 esp32_improv:
   authorizer: shelly_button_id
 
