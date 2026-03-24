@@ -83,13 +83,15 @@ network:
   enable_ipv6: true
   # min_ipv6_addr_count: 2
 
-# TODO: test to make sure bluetooth proxy doesn't cause boot looping!
-# esp32_ble_tracker:
-#   scan_parameters:
-#     active: false
-#
-# bluetooth_proxy:
-#   active: false
+esp32_improv:
+  authorizer: authorize_improv_over_ble_binary_sensor
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
+
+bluetooth_proxy:
+  active: false
 
 time:
   - id: !extend ${time_source}
@@ -221,6 +223,12 @@ binary_sensor:
     entity_category: diagnostic
     condition:
       lvgl.is_paused:
+
+  - platform: template
+    id: authorize_improv_over_ble_binary_sensor
+    name: Authorizing Improv-over-BLE
+    entity_category: diagnostic
+    internal: true
 
 light:
   - platform: monochromatic
@@ -589,6 +597,47 @@ lvgl:
           widgets:
             - label:
                 id: factory_reset_lvgl_cancel_button_label
+                align: CENTER
+                text: "Cancel"
+                text_align: CENTER
+                text_font: roboto_20
+
+    - id: page_setup
+      widgets:
+      - button:
+          width: 164
+          height: 100
+          x: 2
+          y: 58
+          id: authorize_improv_over_ble_lvgl_button
+          on_press:
+            - logger.log: "Authorizing Improv-over-BLE"
+            - binary_sensor.template.publish:
+                id: authorize_improv_over_ble_binary_sensor
+                state: ON
+          on_release:
+            - binary_sensor.template.publish:
+                id: authorize_improv_over_ble_binary_sensor
+                state: OFF
+          widgets:
+            - label:
+                id: authorize_improv_over_ble_lvgl_button_label
+                align: CENTER
+                text: "Improv-over-BLE\nAuthorize"
+                text_align: CENTER
+                text_font: roboto_20
+
+      - button:
+          width: 164
+          height: 100
+          x: 2
+          y: 162
+          id: page_setup_lvgl_cancel_button
+          on_release:
+            - lvgl.page.show: page_main
+          widgets:
+            - label:
+                id: page_setup_lvgl_cancel_button_label
                 align: CENTER
                 text: "Cancel"
                 text_align: CENTER
