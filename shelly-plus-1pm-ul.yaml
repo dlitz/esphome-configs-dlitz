@@ -87,6 +87,18 @@ wifi:
 
 captive_portal:
 
+improv_serial:
+
+esp32_improv:
+  authorizer: shelly_button_id
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: false
+
+bluetooth_proxy:
+  active: false
+
 output:
   - platform: gpio
     id: "relay_output"
