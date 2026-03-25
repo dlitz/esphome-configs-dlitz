@@ -17,6 +17,8 @@ packages:
       - athom-without-relay-plug.yaml
 
   - !include common/git-branch.yaml
+  - !include common/ota.yaml
+  - !include common/ota-update-password.yaml
 
 esphome:
   name: "${name}"
@@ -34,8 +36,7 @@ wifi:
     password: !secret default_ap_password
 
 ota:
-  - id: !extend ota_esphome_id
-    password: !secret default_ota_password
+  - id: !remove ota_esphome_id    # common/ota.yaml adds id: ota_id
 
 web_server:
   ota: false
