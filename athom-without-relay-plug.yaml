@@ -1,0 +1,51 @@
+substitutions:
+  ipv6_enable: "true"
+  time_source: sntp_time
+
+dashboard_import:
+  package_import_url: github://dlitz/esphome-configs-dlitz/athom-without-relay-plug.yaml@${git_branch}
+
+packages:
+  # - url: https://github.com/athom-tech/athom-configs.git
+  #   ref: "5eeaeea141d3330e1a862927592fc3c6b3202a23"
+  #   files:
+  #     - athom-without-relay-plug.yaml
+
+  - url: https://github.com/dlitz/athom-configs.git
+    ref: add-all-the-ids
+    files:
+      - athom-without-relay-plug.yaml
+
+  - !include common/git-branch.yaml
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  name_add_mac_suffix: true
+  project:
+    name: "dlitz.athom-without-relay-plug"
+    version: "v0.0.0"
+
+wifi:
+  min_auth_mode: WPA2
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret default_ap_password
+
+ota:
+  - id: !extend ota_esphome_id
+    password: !secret default_ota_password
+
+web_server:
+  ota: false
+
+time:
+  - id: !extend sntp_time
+    timezone: !remove
+
+light:
+  # Status LED
+  - id: !extend blue_led
+    disabled_by_default: false
+    entity_category: diagnostic
