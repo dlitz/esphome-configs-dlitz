@@ -201,9 +201,9 @@ uart:
         pullup: true
         input: true
     baud_rate: 9600
-    debug:
-      direction: BOTH
-      after:
-        delimiter: "\n"
-      sequence:
-        - lambda: UARTDebug::log_hex(direction, bytes, 32);
+    # debug:
+    #   direction: BOTH
+    #   after:
+    #     delimiter: "\n"
+    #   sequence:
+    #     - lambda: UARTDebug::log_hex(direction, bytes, 32);
