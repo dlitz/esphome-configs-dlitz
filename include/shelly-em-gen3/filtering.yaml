@@ -8,13 +8,13 @@ substitutions:
   update_interval: !remove
 
   # Thresholds for delta filters
-  voltage_delta: 2.5%
-  current_delta: 2%
+  voltage_delta: 1%
+  current_delta: 8%
   power_delta: 1.75%
   energy_delta: 0.05
   frequency_delta: 0.3%
   active_power_delta: ${power_delta}
-  apparent_power_delta: ${power_delta}
+  apparent_power_delta: 9%
   reactive_power_delta: ${power_delta}
   power_factor_delta: 0.1
 
@@ -105,6 +105,7 @@ sensor:
     name: ${ "Current A" if dual_sensors else "Current" }
     id: filtered_current_a
     source_id: current_a
+    accuracy_decimals: 3
     filters:
       - or:
           - throttle: ${max_update_interval}
@@ -114,6 +115,7 @@ sensor:
     name: "Current B"
     id: filtered_current_b
     source_id: current_b
+    accuracy_decimals: 3
     filters:
       - or:
           - throttle: ${max_update_interval}
@@ -142,6 +144,13 @@ sensor:
     id: filtered_apparent_power_a
     source_id: apparent_power_a
     filters:
+      # Apparent power is a noisy sensor with short update_intervals, so smooth
+      # it out.
+      - quantile:
+          window_size: 7
+          send_every: 4
+          send_first_at: 1
+          quantile: 0.9
       - or:
           - throttle: ${max_update_interval}
           - delta: ${apparent_power_a_delta}
@@ -151,6 +160,13 @@ sensor:
     id: filtered_apparent_power_b
     source_id: apparent_power_b
     filters:
+      # Apparent power is a noisy sensor with short update_intervals, so smooth
+      # it out.
+      - quantile:
+          window_size: 7
+          send_every: 4
+          send_first_at: 1
+          quantile: 0.9
       - or:
           - throttle: ${max_update_interval}
           - delta: ${apparent_power_b_delta}
