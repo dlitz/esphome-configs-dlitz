@@ -1,0 +1,266 @@
+# Including this throttles sensor updates for HA.
+substitutions:
+  # min_update_interval - How often we internally fetch data from the sensor
+  min_update_interval: 1s
+
+  # max_update_interval - How often we'll send updates even when nothing changes
+  max_update_interval: 300s
+  update_interval: !remove
+
+  # Thresholds for delta filters
+  voltage_delta: 2.5%
+  current_delta: 2%
+  power_delta: 1.75%
+  energy_delta: 0.05
+  frequency_delta: 0.3%
+  active_power_delta: ${power_delta}
+  apparent_power_delta: ${power_delta}
+  reactive_power_delta: ${power_delta}
+  power_factor_delta: 0.1
+
+  # More specific thresholds
+  current_a_delta: ${current_delta}
+  current_b_delta: ${current_delta}
+  power_factor_a_delta: ${power_factor_delta}
+  power_factor_b_delta: ${power_factor_delta}
+  apparent_power_a_delta: ${apparent_power_delta}
+  apparent_power_b_delta: ${apparent_power_delta}
+  active_power_a_delta: ${active_power_delta}
+  active_power_b_delta: ${active_power_delta}
+  active_power_ab_delta: ${power_delta}
+  reactive_power_a_delta: ${reactive_power_delta}
+  reactive_power_b_delta: ${reactive_power_delta}
+  energy_a_delta: ${energy_delta}
+  energy_b_delta: ${energy_delta}
+  energy_ab_delta: ${energy_delta}
+  daily_energy_consumed_a_delta: ${energy_delta}
+  daily_energy_consumed_b_delta: ${energy_delta}
+  daily_energy_consumed_ab_delta: ${energy_delta}
+
+sensor:
+  - id: !extend ade7953_id
+    update_interval: ${min_update_interval}
+    voltage:
+      internal: true
+    frequency:
+      internal: true
+    current_b:
+      internal: true
+    current_a:
+      internal: true
+    power_factor_b:
+      internal: true
+    power_factor_a:
+      internal: true
+    apparent_power_b:
+      internal: true
+    apparent_power_a:
+      internal: true
+    active_power_b:
+      internal: true
+    active_power_a:
+      internal: true
+    reactive_power_b:
+      internal: true
+    reactive_power_a:
+      internal: true
+
+  - id: !extend energy_a
+    internal: true
+  - id: !extend energy_b
+    internal: true
+  - id: !extend daily_energy_consumed_a
+    internal: true
+  - id: !extend daily_energy_consumed_b
+    internal: true
+  - id: !extend active_power_ab
+    internal: true
+  - id: !extend energy_ab
+    internal: true
+  - id: !extend daily_energy_consumed_ab
+    internal: true
+
+  ##
+  ## The filtered sensors for HA
+  ##
+  - platform: copy
+    name: "Voltage"
+    id: filtered_voltage
+    source_id: voltage
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${voltage_delta}
+
+  - platform: copy
+    name: "Frequency"
+    id: filtered_frequency
+    source_id: frequency
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${frequency_delta}
+
+  - platform: copy
+    name: ${ "Current A" if dual_sensors else "Current" }
+    id: filtered_current_a
+    source_id: current_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${current_a_delta}
+
+  - platform: copy
+    name: "Current B"
+    id: filtered_current_b
+    source_id: current_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${current_b_delta}
+
+  - platform: copy
+    name: ${ "Power Factor A" if dual_sensors else "Power Factor" }
+    id: filtered_power_factor_a
+    source_id: power_factor_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${power_factor_a_delta}
+
+  - platform: copy
+    name: "Power Factor B"
+    id: filtered_power_factor_b
+    source_id: power_factor_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${power_factor_b_delta}
+
+  - platform: copy
+    name: ${ "Apparent Power A" if dual_sensors else "Apparent Power" }
+    id: filtered_apparent_power_a
+    source_id: apparent_power_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${apparent_power_a_delta}
+
+  - platform: copy
+    name: "Apparent Power B"
+    id: filtered_apparent_power_b
+    source_id: apparent_power_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${apparent_power_b_delta}
+
+  - platform: copy
+    name: ${ "Power A" if dual_sensors else "Power" }
+    id: filtered_active_power_a
+    source_id: active_power_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${active_power_a_delta}
+
+  - platform: copy
+    name: "Power B"
+    id: filtered_active_power_b
+    source_id: active_power_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${active_power_b_delta}
+
+  - platform: copy
+    name: ${ "Reactive Power A" if dual_sensors else "Reactive Power" }
+    id: filtered_reactive_power_a
+    source_id: reactive_power_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${reactive_power_a_delta}
+
+  - platform: copy
+    name: "Reactive Power B"
+    id: filtered_reactive_power_b
+    source_id: reactive_power_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${reactive_power_b_delta}
+
+  - platform: copy
+    name: ${ "Energy A" if dual_sensors else "Energy" }
+    id: filtered_energy_a
+    source_id: energy_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${energy_a_delta}
+
+  - platform: copy
+    name: 'Energy B'
+    id: filtered_energy_b
+    source_id: energy_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${energy_b_delta}
+
+  - platform: copy
+    name: ${ "Daily Energy Consumed A" if dual_sensors else "Daily Energy Consumed" }
+    id: filtered_daily_energy_consumed_a
+    source_id: daily_energy_consumed_a
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${daily_energy_consumed_a_delta}
+
+  - platform: copy
+    name: "Daily Energy Consumed B"
+    id: filtered_daily_energy_consumed_b
+    source_id: daily_energy_consumed_b
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${daily_energy_consumed_b_delta}
+
+  - platform: copy
+    name: "Power Total"
+    id: filtered_power_ab
+    source_id: active_power_ab
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${active_power_ab_delta}
+
+  - platform: copy
+    name: "Energy Total"
+    id: filtered_energy_ab
+    source_id: energy_ab
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${energy_ab_delta}
+
+  - platform: copy
+    name: "Daily Energy Consumed Total"
+    id: filtered_daily_energy_consumed_ab
+    source_id: daily_energy_consumed_ab
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${daily_energy_consumed_ab_delta}
+
+  - id: !remove ${ "filtered_active_power_b" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_apparent_power_b" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_current_b" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_daily_energy_consumed_b" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_daily_energy_consumed_ab" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_energy_ab" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_energy_b" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_power_ab" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_power_factor_b" if not dual_sensors else "" }
+  - id: !remove ${ "filtered_reactive_power_b" if not dual_sensors else "" }
