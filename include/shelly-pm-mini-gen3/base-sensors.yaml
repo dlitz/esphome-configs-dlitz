@@ -46,7 +46,7 @@ sensor:
       state_class: measurement
 
   - platform: total_daily_energy
-    id: daily_energy_consumed_id
+    id: daily_energy_consumed
     name: "Daily Energy Consumed"
     power_id: power
     icon: mdi:hours-24
