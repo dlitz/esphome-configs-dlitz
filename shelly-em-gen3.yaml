@@ -47,6 +47,9 @@ substitutions:
   shelly_header_gpio_number: GPIO18
   shelly_ntc_temperature_pin: GPIO3
 
+  # Whether to apply sensor filtering
+  filtering: true
+
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-em-gen3.yaml@${git_branch}
 
@@ -67,6 +70,7 @@ packages:
   - !include common/uptime-info.yaml
   - !include common/wifi-info.yaml
   - !include include/shelly-em-gen3/base-sensors.yaml
+  - !include ${ "include/shelly-em-gen3/filtering.yaml" if filtering else "common/empty.yaml" }
 
 esphome:
   name: "shelly-em-gen3"
