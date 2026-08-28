@@ -39,7 +39,7 @@ sensor:
       device_class: energy
     frequency:
       name: "Frequency"
-      id: line_frequency
+      id: frequency
       accuracy_decimals: 2
       icon: mdi:cosine-wave
       device_class: frequency
