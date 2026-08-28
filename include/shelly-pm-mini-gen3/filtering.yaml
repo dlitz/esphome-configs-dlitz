@@ -1,0 +1,126 @@
+# Including this throttles sensor updates for HA.
+substitutions:
+  # min_update_interval - How often we internally fetch data from the sensor
+  min_update_interval: 1s
+
+  # max_update_interval - How often we'll send updates even when nothing changes
+  max_update_interval: 300s
+  update_interval: !remove
+
+  # Thresholds for delta filters
+  voltage_delta: 0.4%
+  current_delta: 1.5%
+  power_delta: 1.5%
+  energy_delta: 0.05
+  frequency_delta: 0.1%
+  apparent_power_delta: ${power_delta}
+  reactive_power_delta: ${power_delta}
+  power_factor_delta: 0.1
+
+sensor:
+  - id: !extend bl0942_id
+    update_interval: ${min_update_interval}
+    voltage:
+      internal: true
+    current:
+      internal: true
+    power:
+      internal: true
+    energy:
+      internal: true
+    frequency:
+      internal: true
+
+  - id: !extend apparent_power
+    internal: true
+  - id: !extend power_factor
+    internal: true
+  - id: !extend reactive_power
+    internal: true
+  - id: !extend daily_energy_consumed
+    internal: true
+
+  ##
+  ## The filtered sensors for HA
+  ##
+  - platform: copy
+    name: "Frequency"
+    id: filtered_frequency
+    source_id: frequency
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${frequency_delta}
+
+  - platform: copy
+    name: "Voltage"
+    id: filtered_voltage
+    source_id: voltage
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${voltage_delta}
+
+  - platform: copy
+    name: "Current"
+    id: filtered_current
+    source_id: current
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${current_delta}
+
+  - platform: copy
+    name: "Power"
+    id: filtered_power
+    source_id: power
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${power_delta}
+
+  - platform: copy
+    name: "Energy"
+    id: filtered_energy
+    source_id: energy
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${energy_delta}
+
+  - platform: copy
+    name: "Apparent Power"
+    id: filtered_apparent_power
+    source_id: apparent_power
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${apparent_power_delta}
+
+  - platform: copy
+    name: "Power Factor"
+    id: filtered_power_factor
+    source_id: power_factor
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${power_factor_delta}
+
+  - platform: copy
+    name: "Reactive Power"
+    id: filtered_reactive_power
+    source_id: reactive_power
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${reactive_power_delta}
+
+  - platform: copy
+    name: "Daily Energy Consumed"
+    id: filtered_daily_energy_consumed
+    source_id: daily_energy_consumed
+    filters:
+      - or:
+          - throttle: ${max_update_interval}
+          - delta: ${energy_delta}
+

@@ -15,6 +15,9 @@ substitutions:
   shelly_ntc_temperature_pin: GPIO3
   update_interval: 5s
 
+  # Whether to apply sensor filtering
+  filtering: true
+
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/shelly-pm-mini-gen3.yaml@${git_branch}
 
@@ -34,6 +37,7 @@ packages:
   - !include common/uptime-info.yaml
   - !include common/wifi-info.yaml
   - !include include/shelly-pm-mini-gen3/base-sensors.yaml
+  - !include ${ "include/shelly-pm-mini-gen3/filtering.yaml" if filtering else "common/empty.yaml" }
 
 esphome:
   name: "shelly-pm-mini-gen3"
