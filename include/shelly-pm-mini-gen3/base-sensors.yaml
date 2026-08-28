@@ -1,0 +1,100 @@
+sensor:
+  - platform: bl0942
+    id: bl0942_id
+    uart_id: bl0942_uart_id
+    update_interval: ${update_interval}
+    voltage_reference: ${calibration_voltage_reference}
+    current_reference: ${calibration_current_reference}
+    line_frequency: ${line_frequency}
+
+    voltage:
+      name: "Voltage"
+      id: voltage
+      icon: mdi:alpha-v-circle-outline
+      device_class: voltage
+      on_value:
+        then:
+          - component.update: apparent_power
+    current:
+      name: "Current"
+      id: current
+      icon: mdi:alpha-a-circle-outline
+      device_class: current
+      on_value:
+        then:
+          - component.update: apparent_power
+    power:
+      name: "Power"
+      id: power
+      icon: mdi:transmission-tower
+      device_class: power
+      state_class: measurement
+      on_value:
+        then:
+          - component.update: power_factor
+    energy:
+      name: "Energy"
+      id: energy
+      icon: mdi:meter-electric
+      device_class: energy
+    frequency:
+      name: "Frequency"
+      id: line_frequency
+      accuracy_decimals: 2
+      icon: mdi:cosine-wave
+      device_class: frequency
+      state_class: measurement
+
+  - platform: total_daily_energy
+    id: daily_energy_consumed_id
+    name: "Daily Energy Consumed"
+    power_id: power
+    icon: mdi:hours-24
+    unit_of_measurement: "kWh"
+    state_class: total_increasing
+    device_class: energy
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: template
+    id: apparent_power
+    name: "Apparent Power"
+    state_class: measurement
+    device_class: apparent_power
+    unit_of_measurement: "VA"
+    update_interval: never
+    lambda: |-
+      return id(voltage).state * id(current).state;
+    on_value:
+      then:
+        - component.update: power_factor
+        - component.update: reactive_power
+
+  - platform: template
+    id: reactive_power
+    name: "Reactive Power"
+    state_class: measurement
+    device_class: reactive_power
+    unit_of_measurement: "var"
+    update_interval: never
+    lambda: |-
+      return id(apparent_power).state * (1 - id(power_factor).state);
+
+  - platform: template
+    id: power_factor
+    name: "Power Factor"
+    state_class: measurement
+    device_class: power_factor
+    update_interval: never
+    lambda: |-
+      float r = id(power).state;
+      float a = id(apparent_power).state;
+      if (r == 0.0 && a == 0.0) {
+        return 1.0;
+      }
+      return r / a;
+    on_value:
+      then:
+        - component.update: reactive_power
+
