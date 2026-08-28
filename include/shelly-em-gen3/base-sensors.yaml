@@ -29,13 +29,15 @@ sensor:
     power_factor_b:
       id: power_factor_a
       name: ${ "Power Factor A" if dual_sensors else "Power Factor" }
+      unit_of_measurement: ''
       filters:
-        - multiply: -1
+        - multiply: -0.01   # Convert percentage to unitless value
     power_factor_a:
       id: power_factor_b
       name: "Power Factor B"
+      unit_of_measurement: ''
       filters:
-        - multiply: -1
+        - multiply: -0.01   # Convert percentage to unitless value
     apparent_power_b:
       id: apparent_power_a
       name: ${ "Apparent Power A" if dual_sensors else "Apparent Power" }
