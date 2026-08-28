@@ -155,10 +155,10 @@ sensor:
     current_gain_b: ${calibration_current_gain_b}
 
     voltage:
-      id: line_voltage
+      id: voltage
       name: Voltage
     frequency:
-      id: line_frequency
+      id: frequency
       name: Frequency
     current_b:
       id: current_a
