@@ -1,0 +1,4 @@
+# Empty yaml file for use in constructions like:
+#
+#   packages:
+#     - !include ${ "foo.yaml" if foo else "common/empty.yaml" }
