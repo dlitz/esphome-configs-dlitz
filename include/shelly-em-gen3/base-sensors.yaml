@@ -112,7 +112,7 @@ sensor:
       - multiply: 0.001
 
   - platform: combination
-    id: power_ab
+    id: active_power_ab
     type: sum
     name: "Power Total"
     sources:
