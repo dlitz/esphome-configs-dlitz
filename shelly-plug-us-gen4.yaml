@@ -318,7 +318,9 @@ uart:
 output:
   - platform: gpio
     id: "relay_output"
-    pin: GPIO4
+    pin:
+      number: GPIO4
+      ignore_strapping_warning: true
 
   - platform: template
     id: status_led_output
@@ -350,7 +352,7 @@ light:
     name: RGB LED
     #entity_category: config
     pin: GPIO6
-    rgb_order: GRB
+    channel_colors: GRB
     chipset: WS2812
     rmt_symbols: 48
     num_leds: 12
@@ -494,7 +496,7 @@ binary_sensor:
           - ON for at least 5s
         then:
           - light.turn_on:
-              id: status_led_id
+              id: rgb_led
               effect: Blink Green
       - timing:
           - ON for 5s to 10s
@@ -506,7 +508,7 @@ binary_sensor:
           - ON for at least 10s
         then:
           - light.turn_on:
-              id: status_led_id
+              id: rgb_led
               effect: Fast Blink Red Blue
       - timing:
           - ON for at least 10s
