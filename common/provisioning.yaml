@@ -1,0 +1,6 @@
+provisioning:
+  id: provisioning_id
+  timeout: 30min
+  on_timeout:
+    then:
+      - logger.log: "Provisioning window closed; reset the device to reopen it"

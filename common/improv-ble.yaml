@@ -1,0 +1,2 @@
+packages:
+  - !include ${"improv-ble/no-auth.yaml" if improv_authorizer_button_id is none or improv_authorizer_button_id == "none" else "improv-ble/double-click.yaml"}

@@ -1,0 +1,34 @@
+substitutions:
+  improv_authorizer_button_id: improv_authorizer_button_id
+
+packages:
+  - !include common.yaml
+
+binary_sensor:
+  - id: !extend ${improv_authorizer_button_id}
+    on_multi_click:
+      # Double-click pattern
+      - id: improv_authorizer_multiclick_double_click_id
+        timing:
+          - ON for at most 400ms
+          - OFF for at most 400ms
+          - ON for at most 400ms
+          - OFF for at least 800ms
+        then:
+          - logger.log: "Double clicked.  Authorizing improv-over-BLE."
+          - binary_sensor.template.publish:
+              id: improv_authorizer_binary_sensor
+              state: ON
+          - delay: 10ms
+          - binary_sensor.template.publish:
+              id: improv_authorizer_binary_sensor
+              state: OFF
+
+  - platform: template
+    id: improv_authorizer_binary_sensor
+    name: Authorizing Improv-over-BLE
+    entity_category: diagnostic
+    internal: true
+
+improv_ble:
+  authorizer: improv_authorizer_binary_sensor

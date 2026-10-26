@@ -91,6 +91,7 @@ substitutions:
   line_frequency: 60Hz
   update_interval: 5s
 
+  improv_authorizer_button_id: button_id
   shelly_ntc_temperature_pin: GPIO5   # (?)
 
 dashboard_import:
@@ -104,6 +105,9 @@ packages:
   - !include common/git-branch.yaml
   - !include common/ota.yaml
   - !include common/ota-update-password.yaml
+  - !include common/improv-ble.yaml
+  - !include common/improv-serial.yaml
+  - !include common/provisioning.yaml
   - !include common/restart.yaml
   - !include common/safe-mode.yaml
   - !include common/shelly-ntc-temperature.yaml

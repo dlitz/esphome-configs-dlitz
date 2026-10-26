@@ -1,6 +1,7 @@
 substitutions:
   ipv6_enable: "true"
   time_source: sntp_time
+  improv_authorizer_button_id: button_sensor
 
 dashboard_import:
   package_import_url: github://dlitz/esphome-configs-dlitz/athom-without-relay-plug.yaml@${git_branch}
@@ -19,6 +20,8 @@ packages:
   - !include common/git-branch.yaml
   - !include common/ota.yaml
   - !include common/ota-update-password.yaml
+  - !include common/provisioning.yaml
+  - !include common/improv-ble.yaml
 
 esphome:
   name: "${name}"
